@@ -37,3 +37,16 @@ esac
 /bin/sed -e "s|STATIC_URLS|$STATIC_URLS|" --in-place /srv/tomcat/letterboxd/conf/Catalina/localhost/ROOT.xml
 
 /bin/cp /opt/letterboxd/etc/tomcat/conf/staging.xml /srv/tomcat/staging/conf/Catalina/localhost/ROOT.xml
+
+cat <<EOF > /srv/tomcat/letterboxd/.bash_profile
+#!/bin/bash
+export JAVA_MAX_HEAP=10G
+export JAVA_OPTS="-XX:PermSize=256M -XX:MaxPermSize=256M -verbose:gc -XX:+UseConcMarkSweepGC -XX:+CMSIncrementalMode"
+EOF
+
+cat <<EOF > /srv/tomcat/staging/.bash_profile
+#!/bin/bash
+export JAVA_MAX_HEAP=6512M
+export JAVA_OPTS="-XX:PermSize=256M -XX:MaxPermSize=256M -verbose:gc -XX:+UseConcMarkSweepGC -XX:+CMSIncrementalMode"
+EOF
+
