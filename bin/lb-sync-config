@@ -38,7 +38,7 @@ echo "Syncing tomcat..."
 #rsync -a --delete /opt/jars $SERVER:/opt/
 rsync -a --delete /opt/apache-tomcat* --exclude "/*.tar.gz" $SERVER:/opt/
 rsync -a --delete /opt/tomcat $SERVER:/opt/
-rsync -a --delete /opt/pgpool2 $SERVER:/opt/
+#rsync -a --delete /opt/pgpool2 $SERVER:/opt/
 rsync -a --delete /etc/pgpool2 $SERVER:/etc/
 #rsync -a --delete /opt/tomcat-connectors* --exclude "/*.tar.gz" $SERVER:/opt/
 
