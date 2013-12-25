@@ -1,0 +1,57 @@
+# The main website
+<VirtualHost *:80>
+ServerName www.letterboxd.com
+ServerAlias letterboxd.com boxd.it
+
+Include letterboxd.conf
+
+# Use the load balancer
+JkUnMount /assets/* letterboxd
+JkUnMount /static/* letterboxd
+JkUnMount /_maint/* letterboxd
+JkUnMount /_stats/* letterboxd
+JkMount /* letterboxd
+
+RewriteEngine On
+#RewriteCond %{HTTP_HOST} !^(lb[0-9]+\.|)letterboxd\.com
+#RewriteCond %{HTTP_HOST} !^$
+#RewriteRule ^/(.*)$ http://letterboxd.com/$1 [R=301,NE]
+
+Header append P3P "policyref=\"http://letterboxd.com/w3c/p3p.xml\", CP=\"CAO CUR ADM DEV TAI OUR IND ONL UNI COM NAV INT\""
+</VirtualHost>
+
+
+# Server specific URLs such as app1.srv.letterboxd.com do not issue redirects, so we can use multiple
+# host names for static asset parallel downloading advantage in browsers.
+# Also we connect to the local app server so we can access the *.srv.letterboxd.com server to test the
+# local Tomcat instance specifically.
+<VirtualHost *:80>
+ServerName srv.letterboxd.com
+ServerAlias *.srv.letterboxd.com 10.* localhost 127.0.0.1
+
+Include letterboxd.conf
+
+JkUnMount /assets/* letterboxd
+JkUnMount /static/* letterboxd
+JkUnMount /_maint/* letterboxd
+JkUnMount /_stats/* letterboxd
+JkMount /* letterboxd
+
+RewriteEngine On
+# Redirect users browsing non-static assets on our static asset servers
+RewriteCond %{REQUEST_URI} !^/(assets|static|css|js)/
+RewriteCond %{REQUEST_URI} !^/_
+RewriteCond %{HTTP_HOST} [^\.]+\.[^\.]+\.srv\.letterboxd\.com
+RewriteRule (.*) http://letterboxd.com$1 [R]
+
+RewriteRule /robots.txt /robots-direct.txt [PT]
+</VirtualHost>
+
+# Legacy beta site
+<VirtualHost *:80>
+ServerName beta.letterboxd.com
+
+RewriteEngine On
+RewriteRule ^/$ http://letterboxd.com/?register [R]
+RewriteRule ^/(.*)$ http://letterboxd.com/$1 [R=301,NE]
+</VirtualHost>
