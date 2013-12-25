@@ -42,6 +42,11 @@ rsync -a --delete /opt/tomcat $SERVER:/opt/
 rsync -a --delete /etc/pgpool2 $SERVER:/etc/
 #rsync -a --delete /opt/tomcat-connectors* --exclude "/*.tar.gz" $SERVER:/opt/
 
+echo "Syncing tomcat configuration..."
+for i in /srv/tomcat/* ; do
+	rsync -a $i/.bash_profile $SERVER:/$i/
+done
+
 #echo "Syncing tinc hosts..."
 #rsync -a --delete /etc/tinc/vlan0/hosts/ $SERVER:/etc/tinc/vlan0/hosts
 fi
