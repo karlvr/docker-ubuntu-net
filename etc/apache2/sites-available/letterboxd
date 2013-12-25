@@ -3,7 +3,7 @@
 ServerName www.letterboxd.com
 ServerAlias letterboxd.com boxd.it
 
-Include letterboxd.conf
+Include /opt/letterboxd/etc/apache2/letterboxd.conf
 
 # Use the load balancer
 JkUnMount /assets/* letterboxd
@@ -29,7 +29,7 @@ Header append P3P "policyref=\"http://letterboxd.com/w3c/p3p.xml\", CP=\"CAO CUR
 ServerName srv.letterboxd.com
 ServerAlias *.srv.letterboxd.com 10.* localhost 127.0.0.1
 
-Include letterboxd.conf
+Include /opt/letterboxd/etc/apache2/letterboxd.conf
 
 JkUnMount /assets/* letterboxd
 JkUnMount /static/* letterboxd
