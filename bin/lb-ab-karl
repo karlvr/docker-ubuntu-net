@@ -1,0 +1,3 @@
+#!/bin/sh
+
+ab -C letterboxd-beta-bypass=true -C com.xk72.webparts.user=0fvThXLBAfe9DbYzFtJksm1gICrqDzSQrN1Wv7bECYgfX6xYK0 $*

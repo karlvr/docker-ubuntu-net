@@ -1,0 +1,3 @@
+#!/bin/sh
+
+ab -C letterboxd-beta-bypass=true $*

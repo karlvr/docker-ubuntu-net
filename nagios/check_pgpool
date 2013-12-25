@@ -1,0 +1,47 @@
+#!/usr/bin/perl -W
+# 
+# Plugin for Nagios to check pgpool-II backends
+#
+# Lukasz Jagiello (c) 2008
+# lukasz.jagiello@gforces.pl
+# 
+# pcp_node_info
+# Usage: pcp_node_info timeout hostname port# username password nodeID
+#
+# check_pgpool.rb
+# Usage: check_pgpool.rb nodeID
+
+if ($#ARGV < 5) {
+	die "usage: $0 <timeout> <host> <port> <user> <pass> <nodeid> [<nodeid>*]\n";
+}
+
+my ($time, $host, $port, $user, $pass, @nodeids) = @ARGV;
+my $pcp='/usr/sbin/pcp_node_info';
+
+my $working = 0, $down = 0, $unknown = 0;
+
+foreach my $nodeid (@nodeids) {
+	my $pcp_status = `${pcp} ${time} ${host} ${port} ${user} ${pass} ${nodeid}`;
+	my @node_status=split(/ /, $pcp_status);
+
+	if ($#node_status == 0) {
+		$unknown++;
+	} elsif ($node_status[2] == 2 || $node_status[2] == 1) {
+		$working++;
+	} elsif ($node_status[2] == 3) {
+		$down++;
+	} else {
+		$unknown++;
+	}
+}
+
+if ($down > 0) {
+	print "CRITICAL $down down $unknown unknown";
+        exit 2
+} elsif ($unknown > 0) {
+	print "UNKNOWN $unknown unknown $down down";
+	exit 3
+} else {
+	print "WORKING $working up";
+	exit 0
+}

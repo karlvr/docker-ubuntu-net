@@ -1,0 +1,12 @@
+#!/bin/bash
+
+NODES=$*
+if [ "x$NODES" == "x" ]; then
+	echo "usage: $0 <nodeid> [<nodeid>*]"
+        exit 1
+fi
+
+for NODE in $NODES ; do
+	pcp_detach_node 10 localhost 9898 pgpool LaUj600I8 $NODE
+	echo "Detached node $NODE"
+done

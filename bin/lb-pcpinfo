@@ -1,0 +1,10 @@
+#!/bin/bash
+
+NODES=$*
+if [ "x$NODES" == "x" ]; then
+	NODES="0 1 2"
+fi
+
+for NODE in $NODES ; do
+	pcp_node_info 10 localhost 9898 pgpool LaUj600I8 $NODE
+done

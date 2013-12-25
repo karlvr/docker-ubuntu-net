@@ -1,0 +1,13 @@
+#!/bin/bash
+
+sync_server() {
+	echo "Syncing assets with $SERVER"
+	rsync -avO --size-only --exclude "resized" /srv/www/letterboxd/assets $SERVER:/srv/www/letterboxd
+	echo
+	echo "Syncing reciprocal"
+	rsync -avO --size-only --exclude "resized" $SERVER:/srv/www/letterboxd/assets /srv/www/letterboxd
+}
+
+for SERVER in $* ; do
+	sync_server
+done

@@ -1,0 +1,48 @@
+#!/bin/bash
+#
+# Sync the server config
+
+for SERVER in $*
+do
+echo "* Syncing $SERVER"
+
+if [[ $SERVER =~ ^app ]]; then
+echo "Syncing apache conf..."
+rsync -a  --delete /etc/apache2/ $SERVER:/etc/apache2
+rsync -a /usr/lib/apache2/modules/mod_jk.so $SERVER:/usr/lib/apache2/modules/
+
+echo "Restarting apache server..."
+ssh $SERVER 'apache2ctl graceful'
+fi
+
+if [[ $SERVER =~ ^(app|cache) ]]; then
+echo "Syncing java..."
+rsync -a --delete /opt/jdk* --exclude "/*.tar.gz" $SERVER:/opt/
+rsync -a /etc/profile.d/jdk.sh $SERVER:/etc/profile.d/
+fi
+
+if [[ $SERVER =~ ^app ]]; then
+echo "Syncing tomcat..."
+rsync -a --delete /opt/jars $SERVER:/opt/
+rsync -a --delete /opt/apache-tomcat* --exclude "/*.tar.gz" $SERVER:/opt/
+rsync -a --delete /opt/tomcat $SERVER:/opt/
+rsync -a --delete /opt/pgpool2 $SERVER:/opt/
+rsync -a --delete /etc/pgpool2 $SERVER:/etc/
+rsync -a --delete /opt/tomcat-connectors* --exclude "/*.tar.gz" $SERVER:/opt/
+
+echo "Syncing tinc hosts..."
+rsync -a --delete /etc/tinc/vlan0/hosts/ $SERVER:/etc/tinc/vlan0/hosts
+fi
+
+echo "Syncing shorewall conf..."
+rsync -a --delete /etc/shorewall/ $SERVER:/etc/shorewall
+ssh $SERVER 'shorewall restart' >/dev/null
+
+echo "Syncing letterboxd server config..."
+rsync -a --delete /opt/letterboxd $SERVER:/opt
+rsync -a --delete /opt/orac $SERVER:/opt
+rsync -a --delete /etc/profile.d/letterboxd.sh $SERVER:/etc/profile.d/
+rsync -a --delete /etc/nagios $SERVER:/etc/
+
+echo
+done

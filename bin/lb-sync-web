@@ -1,0 +1,30 @@
+#!/bin/bash
+# 
+# Syncs the Letterboxd web root to application servers
+# usage: sync-server.sh <server>+
+
+for SERVER in $*
+do
+echo "Stopping application server..."
+ssh $SERVER 'su - letterboxd -c "bin/shutdown.sh"'
+RESULT=$?
+echo "Waiting for shutdown..."
+sleep 60
+ssh $SERVER 'su - letterboxd -c "killall java"'
+sleep 10
+ssh $SERVER 'su - letterboxd -c "killall -9 java"'
+
+echo "Restarting pgpool2..."
+ssh $SERVER 'invoke-rc.d pgpool2 restart'
+
+echo "Syncing web root..."
+rsync -av --stats  --delete /srv/www/letterboxd/web $SERVER:/srv/www/letterboxd
+
+echo "Starting application server..."
+ssh $SERVER 'su - letterboxd -c "rm -rf work"'
+ssh $SERVER 'su - letterboxd -c "bin/startup.sh"'
+echo "Waiting for startup..."
+# We wait for startup as if we're rolling the deploy we want to
+# give the previous server time to get ready to serve
+sleep 120
+done
