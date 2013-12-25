@@ -1,0 +1,38 @@
+<Context docBase="/srv/www/letterboxd/web" sessionCookieDomain="letterboxd.com">
+  <Environment name="com/xk72/webparts/assets/urls" override="true"
+    type="java.lang.String" value="http://skyfall.cf.letterboxd.com
+    http://zardoz.cf.letterboxd.com
+    http://oblivion.cf.letterboxd.com
+    http://primer.cf.letterboxd.com" />
+
+  <Environment name="com/cactuslab/supermodel/Application/static-urls" override="true"
+    type="java.lang.String" value="STATIC_URLS" />
+
+  <ResourceLink global="mail/Session" name="mail/Session"
+    type="javax.mail.Session" />
+
+  <Resource name="jdbc/DataSource" auth="Container"
+    factory="org.apache.tomcat.jdbc.pool.DataSourceFactory"
+    type="javax.sql.DataSource"
+    initialSize="40" maxActive="40" minIdle="5" maxIdle="40" maxWait="10000"
+    username="letterboxd" password="x44zpyj6"
+    driverClassName="org.postgresql.Driver"
+    url="jdbc:postgresql://localhost/letterboxd" />
+
+  <Resource name="jdbc/BatchDataSource" auth="Container"
+    factory="org.apache.tomcat.jdbc.pool.DataSourceFactory"
+    type="javax.sql.DataSource"
+    initialSize="20" maxActive="20" minIdle="5" maxIdle="20" maxWait="10000"
+    username="letterboxd" password="x44zpyj6"
+    driverClassName="org.postgresql.Driver"
+    url="jdbc:postgresql://localhost/letterboxd" />
+
+  <Resource name="jdbc/DataSourceAdmin" auth="Container"
+    factory="org.apache.tomcat.jdbc.pool.DataSourceFactory"
+    type="javax.sql.DataSource"
+    initialSize="40" maxActive="40" minIdle="5" maxIdle="40" maxWait="10000"
+    username="letterboxd" password="x44zpyj6"
+    driverClassName="org.postgresql.Driver"
+    url="jdbc:postgresql://db1/letterboxd"
+    connectionProperties="ssl=true;sslfactory=org.postgresql.ssl.NonValidatingFactory" />
+</Context>

@@ -1,11 +1,12 @@
-# The main website
+###############################################################################
+# Main website
 <VirtualHost *:80>
 ServerName www.letterboxd.com
 ServerAlias letterboxd.com boxd.it
+DocumentRoot /srv/www/letterboxd/web
 
 Include /opt/letterboxd/etc/apache2/letterboxd.conf
 
-# Use the load balancer
 JkUnMount /assets/* letterboxd
 JkUnMount /static/* letterboxd
 JkUnMount /_maint/* letterboxd
@@ -16,11 +17,26 @@ RewriteEngine On
 #RewriteCond %{HTTP_HOST} !^(lb[0-9]+\.|)letterboxd\.com
 #RewriteCond %{HTTP_HOST} !^$
 #RewriteRule ^/(.*)$ http://letterboxd.com/$1 [R=301,NE]
-
-Header append P3P "policyref=\"http://letterboxd.com/w3c/p3p.xml\", CP=\"CAO CUR ADM DEV TAI OUR IND ONL UNI COM NAV INT\""
 </VirtualHost>
 
 
+###############################################################################
+# Staging site
+<VirtualHost *:80>
+ServerName st.letterboxd.com
+ServerAlias *.st.letterboxd.com
+DocumentRoot /srv/www/staging/web
+
+Include /opt/letterboxd/etc/apache2/letterboxd.conf
+
+JkUnMount /assets/* staging
+JkUnMount /static/* staging
+JkUnMount /_maint/* staging
+JkUnMount /_stats/* staging
+JkMount /* staging
+</VirtualHost>
+
+###############################################################################
 # Server specific URLs such as app1.srv.letterboxd.com do not issue redirects, so we can use multiple
 # host names for static asset parallel downloading advantage in browsers.
 # Also we connect to the local app server so we can access the *.srv.letterboxd.com server to test the
@@ -28,6 +44,7 @@ Header append P3P "policyref=\"http://letterboxd.com/w3c/p3p.xml\", CP=\"CAO CUR
 <VirtualHost *:80>
 ServerName srv.letterboxd.com
 ServerAlias *.srv.letterboxd.com 10.* localhost 127.0.0.1
+DocumentRoot /srv/www/letterboxd/web
 
 Include /opt/letterboxd/etc/apache2/letterboxd.conf
 
@@ -47,6 +64,8 @@ RewriteRule (.*) http://letterboxd.com$1 [R]
 RewriteRule /robots.txt /robots-direct.txt [PT]
 </VirtualHost>
 
+
+###############################################################################
 # Legacy beta site
 <VirtualHost *:80>
 ServerName beta.letterboxd.com
