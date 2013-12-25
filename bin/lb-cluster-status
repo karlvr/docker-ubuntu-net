@@ -1,5 +1,10 @@
 #!/bin/bash
 
+$(dirname $0)/lb-ssh-add
+if [ $? != 0 ]; then
+        exit 1
+fi
+
 server_status() {
 	echo "################################################################################"
 	echo $SERVER

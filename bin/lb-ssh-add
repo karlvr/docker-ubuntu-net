@@ -1,0 +1,10 @@
+#!/bin/bash
+
+/usr/bin/ssh-add -l >/dev/null
+if [ $? != 0 ]; then
+        /usr/bin/ssh-add
+        if [ $? != 0 ]; then
+                echo "SSH auth failed"
+                exit 1
+        fi
+fi
