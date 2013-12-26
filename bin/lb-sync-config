@@ -19,7 +19,10 @@ echo "Syncing letterboxd server config..."
 rsync -a --delete /opt/letterboxd $SERVER:/opt
 rsync -a --delete /opt/orac $SERVER:/opt
 rsync -a --delete /etc/profile.d/letterboxd.sh $SERVER:/etc/profile.d/
+
+echo "Syncing nagios config..."
 rsync -a --delete /etc/nagios $SERVER:/etc/
+ssh $SERVER 'invoke-rc.d nagios-nrpe-server reload'
 
 echo "Syncing shell conf..."
 rsync -a /root/.bash_profile $SERVER:/root/
