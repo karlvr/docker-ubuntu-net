@@ -1,0 +1,5 @@
+#!/bin/bash
+# 
+# Infinispan server CLI
+
+su - -c "bin/ispn-cli.sh -c remoting://127.0.0.1:9999/clustered/letterboxd.metadata" infinispan
