@@ -58,3 +58,16 @@ export JAVA_MAX_HEAP=6512M
 export JAVA_OPTS="-XX:PermSize=256M -XX:MaxPermSize=256M -verbose:gc -XX:+UseConcMarkSweepGC -XX:+CMSIncrementalMode"
 EOF
 
+# pgpool2
+
+CODENAME=`lsb_release -c -s`
+cat <<EOF > /etc/apt/sources.list.d/pgdg.list
+deb http://apt.postgresql.org/pub/repos/apt/ $CODENAME-pgdg main
+EOF
+wget --quiet -O - http://apt.postgresql.org/pub/repos/apt/ACCC4CF8.asc | sudo apt-key add -
+apt-get update
+
+apt-get install pgpool2
+
+# We install postgresql client so we can test connectivity
+apt-get install postgresql-client-9.3
