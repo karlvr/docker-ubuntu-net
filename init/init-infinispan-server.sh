@@ -14,7 +14,7 @@ if [ $? == 0 ]; then
 	if [ $? == 0 ]; then
 		mkdir -p /opt/src
 		wget --no-verbose http://downloads.jboss.org/infinispan/$INFINISPAN_VERSION/infinispan-server-$INFINISPAN_VERSION-bin.zip -O /opt/src/infinispan-server-$INFINISPAN_VERSION-bin.zip && \
-		unzip -d /opt /opt/src/infinispan-server-$INFINISPAN_VERSION-bin.zip && \
+		unzip -q -d /opt /opt/src/infinispan-server-$INFINISPAN_VERSION-bin.zip && \
 		rm -f /opt/infinispan && \
 		ln -s /opt/infinispan-server-$INFINISPAN_VERSION /opt/infinispan && \
 		chmod -R u=rwX,go=rX /opt/infinispan/
