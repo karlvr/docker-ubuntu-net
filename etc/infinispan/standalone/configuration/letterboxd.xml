@@ -237,7 +237,8 @@
             <inet-address value="${jboss.bind.address.management:127.0.0.1}"/>
         </interface>
         <interface name="public">
-            <inet-address value="${jboss.bind.address:127.0.0.1}"/>
+            <!--<inet-address value="${jboss.bind.address:127.0.0.1}"/>-->
+            <subnet-match value="10.100.0.0/16"/>
         </interface>
     </interfaces>
     <socket-binding-group name="standard-sockets" default-interface="public" port-offset="${jboss.socket.binding.port-offset:0}">
