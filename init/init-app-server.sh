@@ -20,6 +20,14 @@ fi
 /opt/orac/bin/init-tomcat letterboxd 20000 20001 dummy
 /opt/orac/bin/init-tomcat staging 20002 20003 dummy
 
+# Bind AJP to vlan address
+# We use this when we're binding to the vlan interface for local load balancing
+sed -e "s/<Connector port=\"20001\" address=\"127.0.0.1\"/<Connector port=\"20001\" address=\"$(hostname -i)\"/" --in-place /srv/tomcat/letterboxd/conf/server.xml
+
+# JVM route
+sed -e "s/<Engine name=\"Catalina\" defaultHost=\"localhost\">/<Engine name=\"Catalina\" defaultHost=\"localhost\" jvmRoute=\"$(hostname)\">/" --in-place /srv/tomcat/letterboxd/conf/server.xml
+
+# Asset configuration
 case $(hostname) in
 	app1)
 		STATIC_URLS="http://elephant.cf1.letterboxd.com http://psycho.cf1.letterboxd.com http://predator.cf1.letterboxd.com http://memento.cf1.letterboxd.com"
