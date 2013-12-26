@@ -15,6 +15,12 @@ echo "Syncing ssh conf..."
 rsync -a /root/.ssh/id_rsa* $SERVER:/root/.ssh
 rsync -a /root/.ssh/authorized_keys $SERVER:/root/.ssh
 
+echo "Syncing letterboxd server config..."
+rsync -a --delete /opt/letterboxd $SERVER:/opt
+rsync -a --delete /opt/orac $SERVER:/opt
+rsync -a --delete /etc/profile.d/letterboxd.sh $SERVER:/etc/profile.d/
+rsync -a --delete /etc/nagios $SERVER:/etc/
+
 echo "Syncing shell conf..."
 rsync -a /root/.bash_profile $SERVER:/root/
 
@@ -59,12 +65,6 @@ rsync -a /etc/hosts $SERVER:/etc
 echo "Syncing shorewall conf..."
 rsync -a --delete /etc/shorewall/ $SERVER:/etc/shorewall
 ssh $SERVER 'shorewall restart' >/dev/null
-
-echo "Syncing letterboxd server config..."
-rsync -a --delete /opt/letterboxd $SERVER:/opt
-rsync -a --delete /opt/orac $SERVER:/opt
-rsync -a --delete /etc/profile.d/letterboxd.sh $SERVER:/etc/profile.d/
-rsync -a --delete /etc/nagios $SERVER:/etc/
 
 echo
 done
