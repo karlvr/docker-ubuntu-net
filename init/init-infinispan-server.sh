@@ -60,7 +60,7 @@ EOF
 	# Infinispan service
 	mkdir -p /etc/infinispan-server && \
 	rm -f /etc/infinispan-server/infinispan-server.conf && \
-	ln -s /opt/letterboxd/etc/infinispan/bin/init.d/infinispan-server.conf /etc/nfinispan-server/infinispan-server.conf
+	ln -s /opt/letterboxd/etc/infinispan/bin/init.d/infinispan-server.conf /etc/infinispan-server/infinispan-server.conf
 
 	rm -f /etc/init.d/infinispan && \
 	ln -s /opt/letterboxd/etc/infinispan/bin/init.d/infinispan-server-lsb.sh /etc/init.d/infinispan && \
