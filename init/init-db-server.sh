@@ -6,7 +6,7 @@ if [ ! -d /etc/postgresql ]; then
 fi
 
 if [ ! -d /home/letterboxd ]; then
-	useradd -m -d /home/letterboxd letterboxd
+	useradd -m -d /home/letterboxd -s /bin/bash letterboxd
 fi
 
 # pgpool2 setup
