@@ -7,11 +7,11 @@ DocumentRoot /srv/www/letterboxd/web
 
 Include /opt/letterboxd/etc/apache2/letterboxd.conf
 
-JkUnMount /assets/* letterboxd
-JkUnMount /static/* letterboxd
-JkUnMount /_maint/* letterboxd
-JkUnMount /_stats/* letterboxd
-JkMount /* letterboxd
+JkUnMount /assets/* balancer
+JkUnMount /static/* balancer
+JkUnMount /_maint/* balancer
+JkUnMount /_stats/* balancer
+JkMount /* balancer
 
 RewriteEngine On
 #RewriteCond %{HTTP_HOST} !^(lb[0-9]+\.|)letterboxd\.com
