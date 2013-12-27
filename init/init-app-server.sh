@@ -20,9 +20,11 @@ fi
 /opt/orac/bin/init-tomcat letterboxd 20000 20001 dummy
 /opt/orac/bin/init-tomcat staging 20002 20003 dummy
 
-# Bind AJP to vlan address
+# Bind AJP to all interfaces
 # We use this when we're binding to the vlan interface for local load balancing
-sed -e "s/<Connector port=\"20001\" address=\"127.0.0.1\"/<Connector port=\"20001\" address=\"$(hostname -i)\"/" --in-place /srv/tomcat/letterboxd/conf/server.xml
+# and for binding to the localhost interface so jk workers can connect to the local
+# Tomcat with the same workers.properties on each machine.
+sed -e "s/<Connector port=\"20001\" address=\"127.0.0.1\"/<Connector port=\"20001\"/" --in-place /srv/tomcat/letterboxd/conf/server.xml
 
 # JVM route
 sed -e "s/<Engine name=\"Catalina\" defaultHost=\"localhost\">/<Engine name=\"Catalina\" defaultHost=\"localhost\" jvmRoute=\"$(hostname)\">/" --in-place /srv/tomcat/letterboxd/conf/server.xml
