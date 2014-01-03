@@ -11,35 +11,43 @@
 # Short-Description: Start Infinispan Server at boot time
 # Description:       Enable Infinispan Server service.
 ### END INIT INFO
+ 
+PATH=/sbin:/bin:/usr/sbin:/usr/bin
 
 # Source function library.
 . /lib/lsb/init-functions
-
+ 
 # Load Java configuration.
 [ -r /etc/java/java.conf ] && . /etc/java/java.conf
 export JAVA_HOME
 
+prog='infinispan-server'
+
 # Load Infinispan Server init.d configuration.
 if [ -z "$ISPN_SERVER_CONF" ]; then
-  ISPN_SERVER_CONF="/etc/infinispan-server/infinispan-server.conf"
+  ISPN_SERVER_CONF="/etc/$prog/$prog.conf"
 fi
 
 [ -r "$ISPN_SERVER_CONF" ] && . "${ISPN_SERVER_CONF}"
 
 # Set defaults.
 
+if [ -z "$ISPN_SERVER_USER" ]; then
+  ISPN_SERVER_USER=root
+fi
+
 if [ -z "$ISPN_SERVER_HOME" ]; then
-  ISPN_SERVER_HOME=/usr/share/infinispan-server
+  ISPN_SERVER_HOME="/usr/share/$prog"
 fi
 export ISPN_SERVER_HOME
 
 if [ -z "$ISPN_SERVER_PIDFILE" ]; then
-  ISPN_SERVER_PIDFILE=/var/run/infinispan-server/infinispan-server-standalone.pid
+  ISPN_SERVER_PIDFILE="/var/run/$prog/$prog-standalone.pid"
 fi
 export ISPN_SERVER_PIDFILE
 
 if [ -z "$ISPN_SERVER_CONSOLE_LOG" ]; then
-  ISPN_SERVER_CONSOLE_LOG=/var/log/infinispan-server/console.log
+  ISPN_SERVER_CONSOLE_LOG="/var/log/$prog/console.log"
 fi
 
 if [ -z "$STARTUP_WAIT" ]; then
@@ -53,7 +61,7 @@ fi
 if [ -z "$ISPN_SERVER_CONFIG" ]; then
   ISPN_SERVER_CONFIG=standalone.xml
 fi
-
+ 
 if [ -z "$ISPN_SERVER_RUN_CONF" ]; then
   ISPN_SERVER_RUN_CONF=""
 fi
@@ -61,21 +69,9 @@ fi
 if [ -z "$ISPN_SERVER_SCRIPT" ]; then
   ISPN_SERVER_SCRIPT=standalone.sh
 fi
-
+ 
 if [[ "$ISPN_SERVER_SCRIPT"=~"^[^/]" ]]; then
   ISPN_SERVER_SCRIPT=$ISPN_SERVER_HOME/bin/$ISPN_SERVER_SCRIPT
-fi
-
-prog='infinispan-server'
-
-CMD_PREFIX=''
-
-if [ ! -z "$ISPN_SERVER_USER" ]; then
-  if [ -x /etc/rc.d/init.d/functions ]; then
-    CMD_PREFIX="daemon --user $ISPN_SERVER_USER"
-  else
-    CMD_PREFIX="su - $ISPN_SERVER_USER -c"
-  fi
 fi
 
 start() {
@@ -94,12 +90,10 @@ start() {
 
   mkdir -p $(dirname $ISPN_SERVER_PIDFILE)
   chown $ISPN_SERVER_USER $(dirname $ISPN_SERVER_PIDFILE) || true
-  #$CMD_PREFIX ISPN_SERVER_PIDFILE=$ISPN_SERVER_PIDFILE $ISPN_SERVER_SCRIPT 2>&1 > $ISPN_SERVER_CONSOLE_LOG &
-  #$CMD_PREFIX ISPN_SERVER_PIDFILE=$ISPN_SERVER_PIDFILE $ISPN_SERVER_SCRIPT &
 
   if [ ! -z "$ISPN_SERVER_USER" ]; then
-    if [ -x /etc/rc.d/init.d/functions ]; then
-      daemon --user $ISPN_SERVER_USER LAUNCH_JBOSS_IN_BACKGROUND=1 JBOSS_PIDFILE=$ISPN_SERVER_PIDFILE RUN_CONF="$ISPN_SERVER_RUN_CONF" $ISPN_SERVER_SCRIPT -c $ISPN_SERVER_CONFIG 2>&1 > $ISPN_SERVER_CONSOLE_LOG &
+    if [ -x /usr/sbin/start-stop-daemon ]; then
+      LAUNCH_JBOSS_IN_BACKGROUND=1 JBOSS_PIDFILE=$ISPN_SERVER_PIDFILE RUN_CONF="$ISPN_SERVER_RUN_CONF" /usr/sbin/start-stop-daemon --start --oknodo --background --pidfile "$ISPN_SERVER_PIDFILE" --chuid $ISPN_SERVER_USER --startas $ISPN_SERVER_SCRIPT -- -c $ISPN_SERVER_CONFIG 2>&1 > $ISPN_SERVER_CONSOLE_LOG
     else
       su - $ISPN_SERVER_USER -c "LAUNCH_JBOSS_IN_BACKGROUND=1 JBOSS_PIDFILE=$ISPN_SERVER_PIDFILE RUN_CONF=\"$ISPN_SERVER_RUN_CONF\" $ISPN_SERVER_SCRIPT -c $ISPN_SERVER_CONFIG" 2>&1 > $ISPN_SERVER_CONSOLE_LOG &
     fi
@@ -110,7 +104,7 @@ start() {
 
   until [ $count -gt $STARTUP_WAIT ]
   do
-    grep 'Infinispan Server.*started in' $ISPN_SERVER_CONSOLE_LOG > /dev/null 
+    grep 'JBAS015874.*started in' $ISPN_SERVER_CONSOLE_LOG > /dev/null 
     if [ $? -eq 0 ] ; then
       launched=true
       break
@@ -127,20 +121,24 @@ stop() {
   count=0;
 
   if [ -f $ISPN_SERVER_PIDFILE ]; then
-    read kpid < $ISPN_SERVER_PIDFILE
-    let kwait=$SHUTDOWN_WAIT
+    if [ -x /usr/sbin/start-stop-daemon ]; then
+      /usr/sbin/start-stop-daemon --stop --pidfile "$ISPN_SERVER_PIDFILE" --retry $SHUTDOWN_WAIT
+    else
+      read kpid < $ISPN_SERVER_PIDFILE
+      let kwait=$SHUTDOWN_WAIT
 
-    # Try issuing SIGTERM
+      # Try issuing SIGTERM
 
-    kill -15 $kpid
-    until [ `ps --pid $kpid 2> /dev/null | grep -c $kpid 2> /dev/null` -eq '0' ] || [ $count -gt $kwait ]
-    do
-      sleep 1
-      let count=$count+1;
-    done
+      kill -15 $kpid
+      until [ `ps --pid $kpid 2> /dev/null | grep -c $kpid 2> /dev/null` -eq '0' ] || [ $count -gt $kwait ]
+      do
+        sleep 1
+        let count=$count+1;
+      done
 
-    if [ $count -gt $kwait ]; then
-      kill -9 $kpid
+      if [ $count -gt $kwait ]; then
+        kill -9 $kpid
+      fi
     fi
   fi
   rm -f $ISPN_SERVER_PIDFILE
