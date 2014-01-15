@@ -2,7 +2,7 @@
 
 NODES=$*
 if [ "x$NODES" == "x" ]; then
-	NODES="0 1 2"
+	NODES="0 1"
 fi
 
 for NODE in $NODES ; do
