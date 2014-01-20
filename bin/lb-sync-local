@@ -1,0 +1,5 @@
+#!/bin/bash
+#
+# Sync the local staging web directory to the prodution directory
+
+rsync -a --delete /srv/www/staging/web /srv/www/letterboxd
