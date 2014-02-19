@@ -1,0 +1,21 @@
+#!/bin/bash
+#
+# Netflix update script
+
+#WEBINFDIR=$(dirname $0)
+#WEBINFDIR=$(dirname "$WEBINFDIR")
+WEBINFDIR=/srv/www/staging/web/WEB-INF
+
+TMPDIR=/tmp/netflix-update
+mkdir -p "$TMPDIR"
+
+CP=`ls "$WEBINFDIR"/lib/*.jar | xargs echo | sed -e 's/ /:/g'`:`ls /opt/tomcat/lib/*.jar | xargs echo | sed -e 's/ /:/g'`
+
+JAVA_OPTS="-Xmx2048M"
+#JAVA_OPTS="$JAVA_OPTS -XX:+UseConcMarkSweepGC -XX:+CMSIncrementalMode"
+JAVA_OPTS="$JAVA_OPTS -Djava.io.tmpdir="$TMPDIR" -cp "$WEBINFDIR"/classes:$CP"
+JAVA_OPTS="$JAVA_OPTS -Dletterboxd.live=true"
+#JAVA_OPTS="$JAVA_OPTS -Dletterboxd.useCachedNetflixData=true"
+#JAVA_OPTS="$JAVA_OPTS -Dletterboxd.useExistingSearchIndex=true"
+
+java $* $JAVA_OPTS web.util.netflix.NetflixUpdate
