@@ -103,7 +103,7 @@
                     <locking isolation="READ_COMMITTED" acquire-timeout="30000" concurrency-level="1000" striping="false"/>
                     <transaction mode="NONE"/>
                     <state-transfer await-initial-transfer="true" timeout="240000" />
-                    <expiration lifespan="86400000" maxIdle="86400000" />
+                    <expiration lifespan="86400000" />
                 </distributed-cache>
             </cache-container>
             <cache-container name="security"/>
