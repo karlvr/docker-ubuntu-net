@@ -2,6 +2,11 @@
 #
 # Netflix update script
 
+if [ $(id -un) != "letterboxd" -a $(id -un) != "staging" ]; then
+	echo "This script must be run as letterboxd or staging"
+	exit 1
+fi
+
 #WEBINFDIR=$(dirname $0)
 #WEBINFDIR=$(dirname "$WEBINFDIR")
 WEBINFDIR=/srv/www/staging/web/WEB-INF
