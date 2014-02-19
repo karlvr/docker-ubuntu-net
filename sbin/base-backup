@@ -1,0 +1,57 @@
+#!/bin/bash
+
+if [ $(id -un) != "postgres" ]; then
+	echo "Please run this script as postgres"
+	exit 1
+fi
+
+VERSION=9.3
+CLUSTER=main
+DATADIR="$VERSION/$CLUSTER"
+BACKUPDATADIR="$VERSION/$CLUSTER.bak"
+PRIMARYHOST=db1
+REPLICATIONUSER=standby
+
+if [ ! -d $DATADIR ]; then
+	echo "Can't find the postgres data directory: $DATADIR"
+	exit 1
+fi
+if [ -d $BACKUPDATADIR ]; then
+	echo "The backup data directory already exists: $BACKUPDATADIR"
+	echo "Please delete it and try again."
+	exit 1
+fi
+
+echo "Stopping the postgres cluster..."
+pg_ctlcluster $VERSION $CLUSTER stop
+if [ $? == 1 ]; then
+	echo "Failed to stop postgres cluster"
+	exit 1
+fi
+
+echo
+echo "Moving the postgres data directory: $DATADIR => $BACKUPDATADIR"
+mv $DATADIR $BACKUPDATADIR
+if [ -d $DATADIR ]; then
+	echo "Failed to move the postgres data directory: $DATADIR"
+	exit 1
+fi
+if [ ! -d $BACKUPDATADIR ]; then
+	echo "Failed to find the moved postgres data directory: $BACKUPDATADIR"
+	exit 1
+fi
+
+echo
+echo "Starting the base backup, you will be prompted for the password for user: $REPLICATIONUSER"
+echo "The base backup may take a few minutes to start showing progress."
+pg_basebackup --pgdata $DATADIR --write-recovery-conf --xlog --progress --host $PRIMARYHOST --username $REPLICATIONUSER --password
+
+if [ $? == 0 ]; then
+	echo "Base backup complete, restarting the cluster"
+	pg_ctlcluster $VERSION $CLUSTER start
+
+	echo "Check the /var/log/postgres/postgres-$VERSION-$CLUSTER.log file to see that replication has started successfully."
+	echo "Then delete $BACKUPDATADIR when you're satisfied."
+else
+	echo "Base backup failed, not restarting the cluster"
+fi
