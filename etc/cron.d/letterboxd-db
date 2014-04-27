@@ -1,0 +1,3 @@
+# Cron jobs for the primary database server
+
+30 22 * * * letterboxd /opt/letterboxd/sbin/maintain-database

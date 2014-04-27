@@ -1,1 +1,4 @@
+# Cron jobs for the primary app server
+# To update netflix
+
 30 20 * * * letterboxd /opt/letterboxd/sbin/netflix-update

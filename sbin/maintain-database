@@ -1,0 +1,6 @@
+#!/bin/bash
+#
+# Database maintenance
+
+# Delete account activity that is more than 30 days old
+su - -c "psql letterboxd -q -c \"delete from accountactivity where whenCreated < ('now'::date - 30);\"" postgres
