@@ -38,7 +38,7 @@ mkdir -p "$TMPDIR"
 
 CP=`ls "$WEBINFDIR"/lib/*.jar | xargs echo | sed -e 's/ /:/g'`:`ls $TOMCATLIBDIR/*.jar | xargs echo | sed -e 's/ /:/g'`
 
-JAVA_OPTS="-Xmx2048M"
+JAVA_OPTS="-Xmx4096M"
 #JAVA_OPTS="$JAVA_OPTS -XX:+UseConcMarkSweepGC -XX:+CMSIncrementalMode"
 JAVA_OPTS="$JAVA_OPTS -Djava.io.tmpdir="$TMPDIR" -cp "$WEBINFDIR"/classes:$CP"
 if [ $DEV == 0 ]; then

@@ -1,0 +1,20 @@
+#!/bin/bash
+#
+# iTunes Download and Update wrapper
+
+BASE_DIR=$(dirname $0)
+
+# Download
+$BASE_DIR/itunes-download
+
+if [ $? != 0 ]; then
+	echo "*** iTunes download failed"
+	exit 1
+fi
+
+# Update
+$BASE_DIR/itunes-update /tmp/letterboxd-itunes/index /tmp/letterboxd-itunes/extract /tmp/letterboxd-itunes/extract
+if [ $? != 0 ]; then
+	echo "*** iTunes download failed"
+	exit 1
+fi
