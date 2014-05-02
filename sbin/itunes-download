@@ -1,0 +1,40 @@
+#!/bin/bash
+#
+
+DOWNLOAD_DIR=/tmp/letterboxd-itunes/download
+EXTRACT_DIR=/tmp/letterboxd-itunes/extract
+
+mkdir -p "$DOWNLOAD_DIR"
+mkdir -p "$EXTRACT_DIR"
+
+/usr/bin/lftp https://feeds.itunes.apple.com/ -u epfuser19e9c30,375891146ac1d9786d91296e81b9be53 \
+	-e "mirror --continue --delete --include-glob itunes*.tbz --include-glob pricing*.tbz --no-recursion /feeds/epf/v3/full/current/ $DOWNLOAD_DIR ; exit"
+
+if [ $? != 0 ]; then
+	echo "*** Failed to download iTunes EPF"
+	exit 1
+fi
+
+ITUNES_TBZ=`ls "$DOWNLOAD_DIR"/itunes*.tbz | head -n 1`
+PRICING_TBZ=`ls "$DOWNLOAD_DIR"/pricing*.tbz | head -n 1`
+
+ITUNES_FOLDER=${ITUNES_TBZ##*/}
+ITUNES_FOLDER=${ITUNES_FOLDER%.*}
+PRICING_FOLDER=${PRICING_TBZ##*/}
+PRICING_FOLDER=${PRICING_FOLDER%.*}
+
+echo "Extracting $ITUNES_TBZ to $EXTRACT_DIR"
+tar xjf $ITUNES_TBZ -C "$EXTRACT_DIR" --strip-components=1 --no-same-owner "$ITUNES_FOLDER/video" "$ITUNES_FOLDER/storefront"
+
+if [ $? != 0 ]; then
+	echo "*** Failed to extract from $ITUNES_TBZ"
+	exit 1
+fi
+
+echo "Extracting $PRICING_TBZ to $EXTRACT_DIR"
+tar xjf $PRICING_TBZ -C "$EXTRACT_DIR" --strip-components=1 --no-same-owner "$PRICING_FOLDER/video_price"
+
+if [ $? != 0 ]; then
+	echo "*** Failed to extract from $PRICING_TBZ"
+	exit 1
+fi
