@@ -1,0 +1,52 @@
+#!/bin/bash
+#
+
+SLEEP=1
+OUTPUT=""
+
+while getopts ":s:o:" opt; do
+  case $opt in
+    s)
+      SLEEP="$OPTARG"
+      ;;
+    o)
+	  OUTPUT="$OPTARG"
+	  ;;
+    \?)
+      echo "Invalid option: -$OPTARG" >&2
+      ;;
+  esac
+done
+
+shift $((OPTIND-1))
+
+usage() {
+	echo "usage: $0 -o <output path> [-s <sleep seconds>] <pid>"
+}
+
+PID=$1
+if [ "x$PID" == "x" ]; then
+	usage
+	exit 1
+fi
+
+if [ "x$OUTPUT" == "x" ]; then
+	usage
+	exit 1
+fi
+
+if [ ! -d "$OUTPUT" ]; then
+	mkdir -p "$OUTPUT"
+fi
+if [ ! -d "$OUTPUT" ]; then
+	echo "Invalid output path: $OUTPUT"
+	exit 1
+fi
+
+while true
+do
+	OUTPUT_FILE="$OUTPUT/$PID-$(date +%s).txt"
+	jstack "$PID" > "$OUTPUT_FILE"
+	echo -n "."
+	sleep "$SLEEP"
+done
