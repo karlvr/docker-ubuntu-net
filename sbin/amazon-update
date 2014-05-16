@@ -1,0 +1,50 @@
+#!/bin/bash
+#
+# Amazon update script
+
+DEV=0
+
+while getopts ":d" opt; do
+  case $opt in
+    d)
+      DEV=1
+      ;;
+    \?)
+      echo "Invalid option: -$OPTARG" >&2
+      ;;
+  esac
+done
+
+shift $((OPTIND-1))
+
+if [ $DEV == 0 -a $(id -un) != "letterboxd" -a $(id -un) != "staging" ]; then
+	echo "This script must be run as letterboxd or staging"
+	exit 1
+fi
+
+#WEBINFDIR=$(dirname $0)
+#WEBINFDIR=$(dirname "$WEBINFDIR")
+if [ $DEV == 0 ]; then
+	WEBINFDIR=/srv/www/staging/web/WEB-INF
+	TMPDIR=/tmp/letterboxd-amazon
+	TOMCATLIBDIR=/opt/tomcat/lib
+else
+	WEBINFDIR=~/Development/wtpwebapps/letterboxd-web/WEB-INF
+	TMPDIR=~/tmp
+	TOMCATLIBDIR=~/Library/Tomcat/Current/lib
+fi
+
+mkdir -p "$TMPDIR"
+
+CP=`ls "$WEBINFDIR"/lib/*.jar | xargs echo | sed -e 's/ /:/g'`:`ls $TOMCATLIBDIR/*.jar | xargs echo | sed -e 's/ /:/g'`
+
+JAVA_OPTS="-Xmx4096M"
+#JAVA_OPTS="$JAVA_OPTS -XX:+UseConcMarkSweepGC -XX:+CMSIncrementalMode"
+JAVA_OPTS="$JAVA_OPTS -Djava.io.tmpdir="$TMPDIR" -cp "$WEBINFDIR"/classes:$CP"
+if [ $DEV == 0 ]; then
+	JAVA_OPTS="$JAVA_OPTS -Dletterboxd.live=true"
+fi
+#JAVA_OPTS="$JAVA_OPTS -Dletterboxd.useCachedNetflixData=true"
+#JAVA_OPTS="$JAVA_OPTS -Dletterboxd.useExistingSearchIndex=true"
+
+java $JAVA_OPTS web.util.amazon.AmazonUpdate $*
