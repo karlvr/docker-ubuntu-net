@@ -4,12 +4,29 @@
 
 BASE_DIR=$(dirname $0)
 
-# Download
-$BASE_DIR/itunes-download
+SKIP_DOWNLOAD=0
 
-if [ $? != 0 ]; then
-	echo "*** iTunes download failed"
-	exit 1
+while getopts ":d" opt; do
+  case $opt in
+    d)
+      SKIP_DOWNLOAD=1
+      ;;
+    \?)
+      echo "Invalid option: -$OPTARG" >&2
+      ;;
+  esac
+done
+
+shift $((OPTIND-1))
+
+if [ $SKIP_DOWNLOAD == 0 ]; then
+	# Download
+	$BASE_DIR/itunes-download
+
+	if [ $? != 0 ]; then
+		echo "*** iTunes download failed"
+		exit 1
+	fi
 fi
 
 # Update
