@@ -26,7 +26,7 @@ fi
 #WEBINFDIR=$(dirname "$WEBINFDIR")
 if [ $DEV == 0 ]; then
 	WEBINFDIR=/srv/www/staging/web/WEB-INF
-	TMPDIR=/tmp/itunes-update
+	TMPDIR=/tmp/letterboxd-itunes/tmp
 	TOMCATLIBDIR=/opt/tomcat/lib
 else
 	WEBINFDIR=~/Development/wtpwebapps/letterboxd-web/WEB-INF
