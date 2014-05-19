@@ -30,7 +30,9 @@ if [ $SKIP_DOWNLOAD == 0 ]; then
 fi
 
 # Update
-$BASE_DIR/itunes-update /tmp/letterboxd-itunes/index /tmp/letterboxd-itunes/extract /tmp/letterboxd-itunes/extract
+TMPDIR=/tmp/letterboxd-itunes
+
+$BASE_DIR/itunes-update "$TMPDIR"/index "$TMPDIR"/extract "$TMPDIR"/extract | tee "$TMPDIR"/update.log
 if [ $? != 0 ]; then
 	echo "*** iTunes update failed"
 	exit 1
