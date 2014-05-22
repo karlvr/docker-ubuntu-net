@@ -19,6 +19,11 @@ done
 
 shift $((OPTIND-1))
 
+if [ $(id -un) != "letterboxd" ]; then
+	echo "This script must be run as letterboxd"
+	exit 1
+fi
+
 if [ $SKIP_DOWNLOAD == 0 ]; then
 	# Download
 	$BASE_DIR/itunes-download
