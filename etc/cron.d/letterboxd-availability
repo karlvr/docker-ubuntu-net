@@ -6,3 +6,6 @@
 
 # iTunes - Sunday 0:00, which appears to be a number of hours after the weekly data update
 0 0 * * 0 letterboxd /opt/letterboxd/sbin/itunes-download-update
+
+# Amazon - Wednesday 0:00
+0 0 * * 3 letterboxd /opt/letterboxd/sbin/amazon-update
