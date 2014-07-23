@@ -1,0 +1,21 @@
+#!/bin/bash
+#
+# Dump top in batch mode to a file.
+
+OUTPUT="."
+
+while getopts ":o:" opt; do
+  case $opt in
+    o)
+	  OUTPUT="$OPTARG"
+	  ;;
+    \?)
+      echo "Invalid option: -$OPTARG" >&2
+      ;;
+  esac
+done
+
+OUTPUT_FILE="$OUTPUT/top-$(date +%s).txt"
+echo "Dumping top to: $OUTPUT_FILE"
+
+top -b -u letterboxd > "$OUTPUT_FILE"

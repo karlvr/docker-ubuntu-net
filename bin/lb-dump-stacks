@@ -1,5 +1,6 @@
 #!/bin/bash
 #
+# Dump JVM stacks repeatedly to a folder.
 
 SLEEP=1
 OUTPUT=""
