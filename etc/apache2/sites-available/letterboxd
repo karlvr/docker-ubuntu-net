@@ -17,6 +17,10 @@ RewriteEngine On
 #RewriteCond %{HTTP_HOST} !^(lb[0-9]+\.|)letterboxd\.com
 #RewriteCond %{HTTP_HOST} !^$
 #RewriteRule ^/(.*)$ http://letterboxd.com/$1 [R=301,NE]
+
+# Performance reporting logging
+#LogFormat "\"%r\" %t %D" perf-baseline
+#CustomLog ${APACHE_LOG_DIR}/letterboxd.log perf-baseline
 </VirtualHost>
 
 
