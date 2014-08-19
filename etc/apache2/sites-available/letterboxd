@@ -19,7 +19,7 @@ RewriteEngine On
 #RewriteRule ^/(.*)$ http://letterboxd.com/$1 [R=301,NE]
 
 # Performance reporting logging
-#LogFormat "\"%r\" %t %D" perf-baseline
+#LogFormat "\"%r\" %t %D %B %>s" perf-baseline
 #CustomLog ${APACHE_LOG_DIR}/letterboxd.log perf-baseline
 </VirtualHost>
 
