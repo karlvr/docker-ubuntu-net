@@ -22,7 +22,7 @@ done
 shift $((OPTIND-1))
 
 usage() {
-	echo "usage: $0 -o <output path> [-s <sleep seconds>] <pid>"
+	echo "usage: $0 [-o <output path>] [-s <sleep seconds>] <pid>"
 }
 
 PID=$1
@@ -32,8 +32,7 @@ if [ "x$PID" == "x" ]; then
 fi
 
 if [ "x$OUTPUT" == "x" ]; then
-	usage
-	exit 1
+	OUTPUT="./stacks-$(date +%s)"
 fi
 
 if [ ! -d "$OUTPUT" ]; then
@@ -46,7 +45,7 @@ fi
 
 while true
 do
-	OUTPUT_FILE="$OUTPUT/$PID-$(date +%s).txt"
+	OUTPUT_FILE="$OUTPUT/$PID-$(($(date +%s%N)/1000000)).txt"
 	jstack "$PID" > "$OUTPUT_FILE"
 	echo -n "."
 	sleep "$SLEEP"
