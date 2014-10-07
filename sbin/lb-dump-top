@@ -15,7 +15,7 @@ while getopts ":o:" opt; do
   esac
 done
 
-OUTPUT_FILE="$OUTPUT/top-$(date +%s).txt"
+OUTPUT_FILE="$OUTPUT/top-$(date +%s)-$(hostname --short).txt"
 echo "Dumping top to: $OUTPUT_FILE"
 
 top -b -u letterboxd > "$OUTPUT_FILE"
