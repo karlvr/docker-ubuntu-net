@@ -16,6 +16,7 @@
     driverClassName="org.postgresql.Driver"
     url="jdbc:postgresql://localhost/letterboxd"
     connectionProperties="disableColumnSanitiser=true"
+    jdbcInterceptors="StatementCache(max=1000)"
     validationQuery="select 1" validationInterval="30000" testOnBorrow="true" />
 
   <Resource name="jdbc/BatchDataSource" auth="Container"
@@ -26,6 +27,7 @@
     driverClassName="org.postgresql.Driver"
     url="jdbc:postgresql://localhost/letterboxd"
     connectionProperties="disableColumnSanitiser=true"
+    jdbcInterceptors="StatementCache(max=1000)"
     validationQuery="select 1" validationInterval="30000" testOnBorrow="true" />
 
   <Resource name="jdbc/DataSourceAdmin" auth="Container"
@@ -36,5 +38,6 @@
     driverClassName="org.postgresql.Driver"
     url="jdbc:postgresql://db1/letterboxd"
     connectionProperties="ssl=true;sslfactory=org.postgresql.ssl.NonValidatingFactory;disableColumnSanitiser=true"
+    jdbcInterceptors="StatementCache(max=1000)"
     validationQuery="select 1" validationInterval="30000" testOnBorrow="true" />
 </Context>
