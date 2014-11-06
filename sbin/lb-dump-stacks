@@ -32,7 +32,7 @@ if [ "x$PID" == "x" ]; then
 fi
 
 if [ "x$OUTPUT" == "x" ]; then
-	OUTPUT="./stacks-$(date +%s)"
+	OUTPUT="./stacks-$(date +%s)-$(hostname --short)"
 fi
 
 if [ ! -d "$OUTPUT" ]; then
