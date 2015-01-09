@@ -19,9 +19,6 @@ ssh $SERVER 'su - letterboxd -c "killall java"'
 sleep 10
 ssh $SERVER 'su - letterboxd -c "killall -9 java"'
 
-echo "Restarting pgpool2..."
-ssh $SERVER 'invoke-rc.d pgpool2 restart'
-
 echo "Syncing web root..."
 rsync -av --stats  --delete /srv/www/staging/web $SERVER:/srv/www/letterboxd
 
