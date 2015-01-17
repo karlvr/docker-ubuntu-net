@@ -55,4 +55,4 @@ fi
 #	JAVA_OPTS="$JAVA_OPTS -Damazon.update.continue=true"
 #fi
 
-java $JAVA_OPTS web.util.gwi.GoWatchItUpdate $* | tee "$TMPDIR"/update.log
+java $JAVA_OPTS web.util.gwi.GoWatchItUpdate $* 2>&1 | tee "$TMPDIR"/update.log

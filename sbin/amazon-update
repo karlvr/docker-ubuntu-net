@@ -55,4 +55,4 @@ if [ $CONTINUE == 1 ]; then
 	JAVA_OPTS="$JAVA_OPTS -Damazon.update.continue=true"
 fi
 
-java $JAVA_OPTS web.util.amazon.AmazonUpdate $* | tee "$TMPDIR"/update.log
+java $JAVA_OPTS web.util.amazon.AmazonUpdate $* 2>&1 | tee "$TMPDIR"/update.log

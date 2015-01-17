@@ -37,7 +37,7 @@ fi
 # Update
 TMPDIR=/tmp/letterboxd-itunes
 
-$BASE_DIR/itunes-update "$TMPDIR"/index "$TMPDIR"/extract "$TMPDIR"/extract | tee "$TMPDIR"/update.log
+$BASE_DIR/itunes-update "$TMPDIR"/index "$TMPDIR"/extract "$TMPDIR"/extract 2>&1 | tee "$TMPDIR"/update.log
 if [ $? != 0 ]; then
 	echo "*** iTunes update failed"
 	exit 1
