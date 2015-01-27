@@ -151,7 +151,7 @@
                     <property name="connection_driver">org.postgresql.Driver</property>
                     <property name="connection_username">${jboss.jgroups.jdbc_ping.username:postgres}</property>
                     <property name="connection_password">${jboss.jgroups.jdbc_ping.password:postgres}</property>
-                    <property name="connection_url">${jboss.jgroups.jdbc_ping.url:jdbc:postgresql://dev.office.cactuslab.com:5499/letterboxd}</property>
+                    <property name="connection_url">${jboss.jgroups.jdbc_ping.url:jdbc:postgresql://db1.office.cactuslab.com/letterboxd}?ssl=true&amp;sslfactory=org.postgresql.ssl.NonValidatingFactory&amp;disableColumnSanitiser=true</property>
                 </protocol>
                 <protocol type="MERGE2"/>
                 <protocol type="FD_SOCK" socket-binding="jgroups-tcp-fd"/>
