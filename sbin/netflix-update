@@ -23,4 +23,4 @@ JAVA_OPTS="$JAVA_OPTS -Dletterboxd.live=true"
 #JAVA_OPTS="$JAVA_OPTS -Dletterboxd.useCachedNetflixData=true"
 #JAVA_OPTS="$JAVA_OPTS -Dletterboxd.useExistingSearchIndex=true"
 
-java $* $JAVA_OPTS web.util.netflix.NetflixUpdate | tee "$TMPDIR"/update.log
+java $* $JAVA_OPTS web.util.netflix.NetflixUpdate 2>&1 | tee "$TMPDIR"/update.log
