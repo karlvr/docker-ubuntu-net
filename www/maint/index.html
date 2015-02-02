@@ -7,8 +7,6 @@
 	
 	<meta name="viewport" content="width=1024" />
 	
-	<link rel="icon" type="image/png" href="favicon.png" />
-	
 	<style>
 	
 		/* Reset */
@@ -56,8 +54,9 @@
 		body.error h1 a {
 			display: block;
 			height: 80px;
-			text-indent: -999em;
-			overflow: hidden;	
+			text-indent: 110%;
+			white-space: nowrap;
+			overflow: hidden;
 		}
 		
 		body.error p {
@@ -90,14 +89,19 @@
 			position:absolute;
 			z-index: -1;
 		}
+		
+		@media only screen and (-webkit-min-device-pixel-ratio: 2), only screen and (-o-min-device-pixel-ratio: 13/10), only screen and (min-resolution: 120dpi), only screen and (min-resolution: 2dppx) {
+			body.error h1 {
+				background-image: url('logo-overlay-2x.png') !important;
+				-webkit-background-size: 480px 80px;
+				   -moz-background-size: 480px 80px;
+				        background-size: 480px 80px;
+			}
+		}
 	</style>
 
 	<script src="jquery-1.6.1.js"></script>
 	<script src="jquery.fullscreenr.js"></script>
-	<!--[if lte IE 6]>
-		<script src="DD_belatedPNG_0.0.8a-min.js"></script>
-		<script>DD_belatedPNG.fix("h1");</script>
-	<![endif]-->
 </head>
 
 <body class="error message-light">
