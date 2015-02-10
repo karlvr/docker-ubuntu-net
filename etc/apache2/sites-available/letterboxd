@@ -23,7 +23,7 @@ RewriteRule ^/(.*)$ http://letterboxd.com/$1 [R=301,NE]
 #CustomLog ${APACHE_LOG_DIR}/letterboxd.log perf-baseline
 
 # Forbid high page numbers for performance
-RewriteRule /page/[0-9][0-9]+/ - [F]
+RewriteRule /page/[0-9][0-9][0-9]+/ - [F]
 </VirtualHost>
 
 
