@@ -38,10 +38,9 @@ EOF
 
 		# Patch jgroups to add the PostgreSQL dependency for JDBC_PING
 		patch -u -f -d /opt/infinispan modules/system/layers/base/org/jgroups/main/module.xml <<EOF
---- modules/system/layers/base/org/jgroups/main/module.xml	2013-12-26 13:34:20.000000000 +1300
-+++ modules/system/layers/base/org/jgroups/main/module.new.xml	2013-12-26 12:33:18.000000000 +1300
-@@ -32,5 +32,6 @@
-     <dependencies>
+--- module.xml	2015-02-20 11:30:36.000000000 +1300
++++ module.new.xml	2015-04-08 08:50:18.308742564 +1200
+@@ -33,5 +33,6 @@
          <module name="javax.api"/>
          <module name="org.jboss.as.clustering.jgroups"/>
          <module name="org.jboss.sasl" services="import" />
