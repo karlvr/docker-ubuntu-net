@@ -2,4 +2,12 @@
 # 
 # Infinispan server CLI
 
-su - -c "bin/ispn-cli.sh -c remoting://127.0.0.1:9999/clustered/letterboxd.metadata" infinispan
+echo "To connect to the Letterboxd metadata cache:"
+echo "container clustered"
+echo "cache 'letterboxd.metadata'"
+echo
+echo "To view cache stats type:"
+echo "stats"
+echo
+
+su - -c "bin/ispn-cli.sh --connect" infinispan
