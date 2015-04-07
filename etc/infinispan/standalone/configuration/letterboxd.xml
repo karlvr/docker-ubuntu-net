@@ -120,20 +120,20 @@
             <deployment-scanner path="deployments" relative-to="jboss.server.base.dir" scan-interval="5000" runtime-failure-causes-rollback="${jboss.deployment.scanner.rollback.on.failure:false}"/>
         </subsystem>
         <subsystem xmlns="urn:infinispan:server:endpoint:7.0">
-            <hotrod-connector socket-binding="hotrod" cache-container="clustered">
+            <hotrod-connector socket-binding="hotrod" cache-container="clustered2">
                 <topology-state-transfer lazy-retrieval="false" lock-timeout="1000" replication-timeout="5000"/>
             </hotrod-connector>
             <!--
-            <memcached-connector socket-binding="memcached" cache-container="clustered"/>
-            <rest-connector virtual-server="default-host" cache-container="clustered" security-domain="other" auth-method="BASIC"/>
-            <websocket-connector socket-binding="websocket" cache-container="clustered"/>
+            <memcached-connector socket-binding="memcached" cache-container="clustered2"/>
+            <rest-connector virtual-server="default-host" cache-container="clustered2" security-domain="other" auth-method="BASIC"/>
+            <websocket-connector socket-binding="websocket" cache-container="clustered2"/>
             -->
         </subsystem>
         <subsystem xmlns="urn:jboss:domain:datasources:2.0">
             <datasources/>
         </subsystem>
-        <subsystem xmlns="urn:infinispan:server:core:7.1" default-cache-container="clustered">
-            <cache-container name="clustered" default-cache="letterboxd.metadata" statistics="true">
+        <subsystem xmlns="urn:infinispan:server:core:7.1" default-cache-container="clustered2">
+            <cache-container name="clustered2" default-cache="letterboxd.metadata" statistics="true">
                 <transport executor="infinispan-transport" lock-timeout="60000"/>
                 <distributed-cache name="letterboxd.metadata" mode="ASYNC" segments="20" owners="2" remote-timeout="30000" start="EAGER">
                     <locking acquire-timeout="30000" concurrency-level="1000" striping="false"/>
