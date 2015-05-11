@@ -2,49 +2,13 @@
 #
 # GoWatchIt update script
 
-DEV=0
-CONTINUE=0
+TMPDIRNAME=letterboxd-gowatchit
 
-while getopts ":dc" opt; do
-  case $opt in
-    d)
-      DEV=1
-      ;;
-    c)
-	  CONTINUE=1
-	  ;;
-    \?)
-      echo "Invalid option: -$OPTARG" >&2
-      ;;
-  esac
-done
-
-shift $((OPTIND-1))
-
-if [ $DEV == 0 -a $(id -un) != "letterboxd" ]; then
-	echo "This script must be run as letterboxd"
-	exit 1
-fi
-
-#WEBINFDIR=$(dirname $0)
-#WEBINFDIR=$(dirname "$WEBINFDIR")
-if [ $DEV == 0 ]; then
-	WEBINFDIR=/srv/www/staging/web/WEB-INF
-	TMPDIR=/tmp/letterboxd-gowatchit
-	TOMCATLIBDIR=/opt/tomcat/lib
-else
-	WEBINFDIR=~/Development/wtpwebapps/letterboxd-web/WEB-INF
-	TMPDIR=~/tmp
-	TOMCATLIBDIR=~/Library/Tomcat/Current/lib
-fi
-
-mkdir -p "$TMPDIR"
-
-CP=`ls "$WEBINFDIR"/lib/*.jar | xargs echo | sed -e 's/ /:/g'`:`ls $TOMCATLIBDIR/*.jar | xargs echo | sed -e 's/ /:/g'`
+. $(dirname $0)/../libexec/tool-base.sh
 
 JAVA_OPTS="-Xmx1024M"
 #JAVA_OPTS="$JAVA_OPTS -XX:+UseConcMarkSweepGC -XX:+CMSIncrementalMode"
-JAVA_OPTS="$JAVA_OPTS -Djava.io.tmpdir="$TMPDIR" -cp "$WEBINFDIR"/classes:$CP"
+JAVA_OPTS="$JAVA_OPTS -Djava.io.tmpdir="$TMPDIR" -cp $CP"
 if [ $DEV == 0 ]; then
 	JAVA_OPTS="$JAVA_OPTS -Dletterboxd.live=true"
 fi
@@ -55,4 +19,4 @@ fi
 #	JAVA_OPTS="$JAVA_OPTS -Damazon.update.continue=true"
 #fi
 
-java $JAVA_OPTS web.util.gwi.GoWatchItUpdate $* 2>&1 | tee "$TMPDIR"/update.log
+java $JAVA_OPTS com.letterboxd.tools.gwi.GoWatchItUpdate $* 2>&1 | tee "$TMPDIR"/update.log
