@@ -50,6 +50,13 @@ acl debug {
   "127.0.0.1";
 }
 
+acl purge {
+  "127.0.0.1";
+  "199.195.199.60";
+  "199.195.199.116";
+  "10.0.0.0"/8;
+}
+
 sub vcl_init {
   new bar = directors.round_robin();
   bar.add_backend(F_app1);
@@ -57,6 +64,19 @@ sub vcl_init {
 }
 
 sub vcl_recv {
+  if (req.method == "BAN") {
+    # Same ACL check as above:
+    if (!client.ip ~ purge) {
+      return(synth(403, "Not allowed."));
+    }
+    ban("obj.http.Surrogate-Key ~ (^|\s)" + req.url + "($|\s)");
+    #ban("obj.http.Surrogate-Key ~ " + req.url);
+
+    # Throw a synthetic page so the
+    # request won't go to the backend.
+    return(synth(200, "Ban added"));
+  }
+
 #--FASTLY RECV CODE START
   # if (req.restarts == 0) {
   #   if (!req.http.X-Timer) {
