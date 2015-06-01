@@ -100,6 +100,9 @@ sub vcl_recv {
   
 #--FASTLY RECV CODE END
 
+  # KVR: force the Host so we can test with Varnish on any URL
+  set req.http.Host = "letterboxd.com";
+
   # KVR: Setup X-Forwarded-For header
   if (req.restarts == 0) {
     if (!req.http.Fastly-FF) {
