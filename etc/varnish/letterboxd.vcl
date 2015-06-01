@@ -133,6 +133,20 @@ if (req.http.Host == "varnish.letterboxd.com" && req.url ~ "^/robots.txt") {
     set req.http.X-Supermodel-Debug = "YES";
   }
 
+  # KVR: Normalize Accept-Encoding header, as it will be in the Vary headers
+  # See http://www.slideshare.net/Fastly/fastly-inaugural-nyc-varnish-meetup
+  if (req.http.Accept-Encoding) {
+    if (req.http.User-Agent ~ "MSIE 6") {
+      unset req.http.Accept-Encoding;
+    } else if (req.http.Accept-Encoding ~ "gzip") {
+      set req.http.Accept-Encoding = "gzip";
+    } else if (req.http.Accept-Encoding ~ "deflate") {
+      set req.http.Accept-Encoding = "deflate";
+    } else {
+      unset req.http.Accept-Encoding;
+    }
+  }
+
   # KVR: Geolocation (always add headers, and then remove if not allowed later)
   set req.http.X-Supermodel-Country-Code = geoip.country_code("" + client.ip);
   unset req.http.X-Supermodel-City; # We're not using City at the moment
