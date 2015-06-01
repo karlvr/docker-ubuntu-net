@@ -6,7 +6,7 @@ fi
 
 source /opt/orac/init/functions.sh
 
-INFINISPAN_VERSION=6.0.0.Final
+INFINISPAN_VERSION=7.1.1.Final
 
 gate infinispan "Installing Infinispan"
 if [ $? == 0 ]; then
@@ -22,12 +22,12 @@ if [ $? == 0 ]; then
 
 		# PostgreSQL
 		mkdir -p /opt/infinispan/modules/org/postgresql/main
-		wget --no-verbose http://jdbc.postgresql.org/download/postgresql-9.3-1100.jdbc41.jar -P /opt/infinispan/modules/org/postgresql/main
+		wget --no-verbose http://jdbc.postgresql.org/download/postgresql-9.4-1201.jdbc41.jar -P /opt/infinispan/modules/org/postgresql/main
 		cat <<EOF > /opt/infinispan/modules/org/postgresql/main/module.xml
 <?xml version="1.0" encoding="UTF-8"?>  
 <module xmlns="urn:jboss:module:1.0" name="org.postgresql">  
 	<resources>  
-		<resource-root path="postgresql-9.3-1100.jdbc41.jar"/>  
+		<resource-root path="postgresql-9.4-1201.jdbc41.jar"/>  
 	</resources>  
 	<dependencies>  
 		<module name="javax.api"/>  
@@ -38,12 +38,12 @@ EOF
 
 		# Patch jgroups to add the PostgreSQL dependency for JDBC_PING
 		patch -u -f -d /opt/infinispan modules/system/layers/base/org/jgroups/main/module.xml <<EOF
---- modules/system/layers/base/org/jgroups/main/module.xml	2013-12-26 13:34:20.000000000 +1300
-+++ modules/system/layers/base/org/jgroups/main/module.new.xml	2013-12-26 12:33:18.000000000 +1300
-@@ -32,5 +32,6 @@
-     <dependencies>
+--- module.xml	2015-02-20 11:30:36.000000000 +1300
++++ module.new.xml	2015-04-08 08:50:18.308742564 +1200
+@@ -33,5 +33,6 @@
          <module name="javax.api"/>
          <module name="org.jboss.as.clustering.jgroups"/>
+         <module name="org.jboss.sasl" services="import" />
 +        <module name="org.postgresql" />
      </dependencies>
  </module>
@@ -63,7 +63,7 @@ EOF
 	ln -s /opt/letterboxd/etc/infinispan/bin/init.d/infinispan-server.conf /etc/infinispan-server/infinispan-server.conf
 
 	rm -f /etc/init.d/infinispan && \
-	ln -s /opt/letterboxd/etc/infinispan/bin/init.d/infinispan-server-lsb.sh /etc/init.d/infinispan && \
+	ln -s /opt/infinispan/bin/init.d/infinispan-server-lsb.sh /etc/init.d/infinispan && \
 	update-rc.d infinispan defaults 99 00
 	warn_failure "Failed to create infinispan service"
 
