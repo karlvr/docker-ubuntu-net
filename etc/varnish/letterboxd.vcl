@@ -100,6 +100,10 @@ sub vcl_recv {
   
 #--FASTLY RECV CODE END
 
+if (req.http.Host == "varnish.letterboxd.com" && req.url ~ "^/robots.txt") {
+  return(synth(902, "No robots"));
+}
+
   # KVR: force the Host so we can test with Varnish on any URL
   set req.http.Host = "letterboxd.com";
 
@@ -741,6 +745,12 @@ sub vcl_synth {
       synthetic({"<!-- ESI error "} + req.url + {" --><script>window.componentFailed = true;</script><!-- /ESI error -->"});
     }
     return(deliver);
+  } else if (resp.status == 902) {
+    set resp.status = 200;
+    set resp.http.Content-type = "text/plain";
+    synthetic({"User-agent: *
+Disallow: /"});
+    return (deliver);
   }
 
   return (deliver);
