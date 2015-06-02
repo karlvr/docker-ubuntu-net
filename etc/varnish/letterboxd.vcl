@@ -114,11 +114,6 @@ if (req.http.Host == "varnish.letterboxd.com" && req.url ~ "^/robots.txt") {
     } else {
       set req.http.Fastly-Temp-XFF = req.http.X-Forwarded-For;
     }
-  } else {
-    # Restore original cookie if the request has been restarted
-    if (req.http.X-Supermodel-Original-Cookie) {
-      set req.http.Cookie = req.http.X-Supermodel-Original-Cookie;
-    }
   }
   
   unset req.http.X-Supermodel-Generated-CSRF;
@@ -151,6 +146,13 @@ if (req.http.Host == "varnish.letterboxd.com" && req.url ~ "^/robots.txt") {
   set req.http.X-Supermodel-Country-Code = geoip.country_code("" + client.ip);
   unset req.http.X-Supermodel-City; # We're not using City at the moment
   #set req.http.X-Supermodel-City = geoip.city;
+
+  #
+  # Store original cookie
+  #
+
+  set req.http.X-Supermodel-Original-Cookie = req.http.Cookie;
+
 
   # Request methods that do not get served from cache or doctored by vcl_fetch
   if (req.method != "HEAD" && req.method != "GET" && req.method != "PURGE") {
@@ -319,7 +321,7 @@ if (req.http.Host == "varnish.letterboxd.com" && req.url ~ "^/robots.txt") {
 
   #LB
   set req.http.X-Letterboxd-Cookie-Set = "";
-  if (req.http.X-Supermodel-Path ~ "(\?|&)esiAllowUser=true(&|$)" || req.http.X-Supermodel-Allow-User == "true") {
+  if (req.http.X-Supermodel-Path ~ "(\?|&)esiAllowUser=true(&|$)") {
     set req.http.X-Letterboxd-Cookie-Set = req.http.X-Letterboxd-Cookie-Set + "USER ";
   }
   if (req.http.X-Supermodel-Path ~ "(\?|&)esiAllowFilters=true(&|$)") {
@@ -329,12 +331,6 @@ if (req.http.Host == "varnish.letterboxd.com" && req.url ~ "^/robots.txt") {
     unset req.http.X-Supermodel-Country-Code;
     unset req.http.X-Supermodel-City;
   }
-
-  #
-  # Store original cookie
-  #
-
-  set req.http.X-Supermodel-Original-Cookie = req.http.Cookie;
 
   #
   # CSRF handling
@@ -421,6 +417,11 @@ sub allow_esi {
 }
 
 sub vcl_backend_response {
+  # Check if we've indicated that this response is uncacheable
+  if (bereq.http.X-Supermodel-Uncacheable == "YES") {
+    set beresp.uncacheable = true;
+  }
+
   if (bereq.http.X-Supermodel-ESI == "YES") {
     # KVR: We pass the X-Supermodel-ESI to the backend to let it know that we support ESI.
     set beresp.do_esi = true;
@@ -456,7 +457,48 @@ sub vcl_backend_response {
 #--FASTLY FETCH END
 
   if ((beresp.status == 401 && bereq.http.X-Supermodel-User-Stripped == "YES") && bereq.retries < 2 && (bereq.method == "GET" || bereq.method == "HEAD")) {
-    set bereq.http.X-Supermodel-Allow-User = "true";
+    # Restore original cookie so we can retry the request with the user not stripped
+    if (bereq.http.X-Supermodel-Original-Cookie) {
+      set bereq.http.Cookie = bereq.http.X-Supermodel-Original-Cookie;
+    }
+    set bereq.http.X-Letterboxd-Cookie-Set = bereq.http.X-Letterboxd-Cookie-Set + "USER ";
+
+    unset bereq.http.X-Supermodel-User-Stripped;
+
+    # Mark this request as uncacheable, as we can't change the cache key at this point, but we're changing the cookie
+    # so we must not cache as the cache would be populated with the result of using this user's cookie but stored with the hash
+    # of there being no cookie.
+    set bereq.http.X-Supermodel-Uncacheable = "YES";
+
+    # KVR: Only preserve some cookies
+    if (bereq.http.Cookie) {
+      # https://www.varnish-cache.org/trac/wiki/VCLExampleRemovingSomeCookies
+      set bereq.http.Cookie = ";" + bereq.http.Cookie;
+      set bereq.http.Cookie = regsuball(bereq.http.Cookie, "; +", ";");
+
+      #LB
+      if (bereq.http.X-Letterboxd-Cookie-Set ~ "(^|\s)USER(\s|$)") {
+        # For the user cookieSet we allow the user related cookies, and the CSRF to come through.
+        set bereq.http.Cookie = regsuball(bereq.http.Cookie, ";(com\.xk72\.webparts\.user(\.CURRENT)?|com\.xk72\.webparts\.csrf)=", "; \1=");
+      } else {
+        set bereq.http.X-Supermodel-User-Stripped = "YES"; # Added by GRB
+      }
+      if (bereq.http.X-Letterboxd-Cookie-Set ~ "(^|\s)FILTERS(\s|$)") {
+        set bereq.http.Cookie = regsuball(bereq.http.Cookie, ";(hideShortsFilter|hideUnreleasedFilter|hideWatchlistedFilter|watchedOrUnwatchedFilter)=", "; \1=");
+      } else {
+        set bereq.http.X-Letterboxd-Filter-Stripped = "YES"; # Added by GRB
+      }
+
+      set bereq.http.Cookie = regsuball(bereq.http.Cookie, ";(useMobileSite)=yes", "; \1=yes"); # Allow useMobileSite=yes
+      set bereq.http.Cookie = regsuball(bereq.http.Cookie, ";(useMobileSite)=no", "; \1=no"); # Allow useMobileSite=no (don't allow the deprecated useMobileSite=undecided)
+      set bereq.http.Cookie = regsuball(bereq.http.Cookie, ";[^ ][^;]*", "");
+      set bereq.http.Cookie = regsuball(bereq.http.Cookie, "^[; ]+|[; ]+$", "");
+
+      if (bereq.http.Cookie == "") {
+          unset bereq.http.Cookie;
+      }
+    }
+
     return(retry);
   }
 
@@ -994,7 +1036,7 @@ sub my_tidy_up_bereq {
   unset bereq.http.X-Supermodel-Path;
   unset bereq.http.X-Supermodel-Development;
   # unset bereq.http.X-Supermodel-User; # We do not pass the X-Supermodel-User header to the backend, since it's an unreliable indicator of whether the user is still actually logged in
-  unset bereq.http.X-Supermodel-Original-Cookie;
+  # unset bereq.http.X-Supermodel-Original-Cookie;
   unset bereq.http.X-Supermodel-Cookie-Domain;
 
   # We do not remove X-Supermodel-ESI, so the backend will know that we support ESI.
