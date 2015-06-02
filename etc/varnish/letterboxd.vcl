@@ -71,7 +71,12 @@ sub vcl_recv {
     if (!client.ip ~ purge) {
       return(synth(403, "Not allowed."));
     }
-    ban("obj.http.Surrogate-Key ~ (^|\s)" + req.url + "($|\s)");
+
+    if (req.url == "ALL") {
+      ban("obj.http.Surrogate-Key != NEVER_PURGE_ME");
+    } else {
+      ban("obj.http.Surrogate-Key ~ (^|\s)" + req.url + "($|\s)");
+    }
     #ban("obj.http.Surrogate-Key ~ " + req.url);
 
     # Throw a synthetic page so the
