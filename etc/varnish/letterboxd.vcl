@@ -327,7 +327,7 @@ if (req.http.Host == "varnish.letterboxd.com" && req.url ~ "^/robots.txt") {
 
   set req.http.X-Letterboxd-Cookie-Set = "";
   set req.http.X-Supermodel-Cookies-Allowed = "X-this-string-cant-be-empty-or-no-filtering-occurs";
-  if (req.http.X-Supermodel-Path ~ "(\?|&)esiAllowUser=true(&|$)") {
+  if (req.http.X-Supermodel-Path ~ "(\?|&)esiAllowUser=true(&|$)" || req.http.X-Supermodel-Allow-User == "YES") {
     set req.http.X-Letterboxd-Cookie-Set = req.http.X-Letterboxd-Cookie-Set + "USER ";
     set req.http.X-Supermodel-Cookies-Allowed = req.http.X-Supermodel-Cookies-Allowed + ",com.xk72.webparts.csrf,com.xk72.webparts.user,com.xk72.webparts.user.CURRENT";
   } else {
@@ -451,52 +451,6 @@ sub vcl_backend_response {
     
     
 #--FASTLY FETCH END
-
-  if ((beresp.status == 401 && bereq.http.X-Supermodel-User-Stripped == "YES") && bereq.retries < 2 && (bereq.method == "GET" || bereq.method == "HEAD")) {
-    # Restore original cookie so we can retry the request with the user not stripped
-    if (bereq.http.X-Supermodel-Original-Cookie) {
-      set bereq.http.Cookie = bereq.http.X-Supermodel-Original-Cookie;
-    }
-    set bereq.http.X-Letterboxd-Cookie-Set = bereq.http.X-Letterboxd-Cookie-Set + "USER ";
-
-    unset bereq.http.X-Supermodel-User-Stripped;
-
-    # Mark this request as uncacheable, as we can't change the cache key at this point, but we're changing the cookie
-    # so we must not cache as the cache would be populated with the result of using this user's cookie but stored with the hash
-    # of there being no cookie.
-    set bereq.http.X-Supermodel-Uncacheable = "YES";
-
-    # KVR: Only preserve some cookies
-    if (bereq.http.Cookie) {
-      # https://www.varnish-cache.org/trac/wiki/VCLExampleRemovingSomeCookies
-      set bereq.http.Cookie = ";" + bereq.http.Cookie;
-      set bereq.http.Cookie = regsuball(bereq.http.Cookie, "; +", ";");
-
-      #LB
-      if (bereq.http.X-Letterboxd-Cookie-Set ~ "(^|\s)USER(\s|$)") {
-        # For the user cookieSet we allow the user related cookies, and the CSRF to come through.
-        set bereq.http.Cookie = regsuball(bereq.http.Cookie, ";(com\.xk72\.webparts\.user(\.CURRENT)?|com\.xk72\.webparts\.csrf)=", "; \1=");
-      } else {
-        set bereq.http.X-Supermodel-User-Stripped = "YES"; # Added by GRB
-      }
-      if (bereq.http.X-Letterboxd-Cookie-Set ~ "(^|\s)FILTERS(\s|$)") {
-        set bereq.http.Cookie = regsuball(bereq.http.Cookie, ";(hideShortsFilter|hideUnreleasedFilter|hideWatchlistedFilter|watchedOrUnwatchedFilter)=", "; \1=");
-      } else {
-        set bereq.http.X-Letterboxd-Filter-Stripped = "YES"; # Added by GRB
-      }
-
-      set bereq.http.Cookie = regsuball(bereq.http.Cookie, ";(useMobileSite)=yes", "; \1=yes"); # Allow useMobileSite=yes
-      set bereq.http.Cookie = regsuball(bereq.http.Cookie, ";(useMobileSite)=no", "; \1=no"); # Allow useMobileSite=no (don't allow the deprecated useMobileSite=undecided)
-      set bereq.http.Cookie = regsuball(bereq.http.Cookie, ";[^ ][^;]*", "");
-      set bereq.http.Cookie = regsuball(bereq.http.Cookie, "^[; ]+|[; ]+$", "");
-
-      if (bereq.http.Cookie == "") {
-          unset bereq.http.Cookie;
-      }
-    }
-
-    return(retry);
-  }
 
   if ((beresp.status == 500 || beresp.status == 503) && bereq.retries < 1 && (bereq.method == "GET" || bereq.method == "HEAD")) {
     return(retry);
@@ -690,6 +644,14 @@ sub vcl_miss {
 }
 
 sub vcl_deliver {
+  # Handle forbidden responses where we have stripped the user details
+  if (resp.status == 401 && req.http.X-Supermodel-User-Stripped == "YES") {
+    # Restart the request, not stripping the user details this time.
+    set req.http.X-Supermodel-Allow-User = "YES";
+    set req.http.Cookie = req.http.X-Supermodel-Original-Cookie;
+    return(restart);
+  }
+
 #--FASTLY DELIVER START
 
 # record the journey of the object, expose it only if req.http.Fastly-Debug.
