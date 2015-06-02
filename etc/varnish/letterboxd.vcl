@@ -106,7 +106,7 @@ if (req.http.Host == "varnish.letterboxd.com" && req.url ~ "^/robots.txt") {
 }
 
   # KVR: force the Host so we can test with Varnish on any URL
-  set req.http.Host = "letterboxd.com";
+  #set req.http.Host = "letterboxd.com";
 
   # KVR: Setup X-Forwarded-For header
   if (req.restarts == 0) {
