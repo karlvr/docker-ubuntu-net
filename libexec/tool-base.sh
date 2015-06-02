@@ -24,16 +24,24 @@ if [ $DEV == 0 -a $(id -un) != "letterboxd" ]; then
 	exit 1
 fi
 
+TMPDIR=
+
 if [ $DEV == 0 ]; then
 	TOOLSJAR=/srv/tools/letterboxd-tools-1.0-SNAPSHOT-jar-with-dependencies.jar
-	TMPDIR=/tmp/$TMPDIRNAME/tmp
+	if [ "x$TMPDIRNAME" != "x" ]; then
+		TMPDIR=/tmp/$TMPDIRNAME/tmp
+	fi
 	TOMCATLIBDIR=/opt/tomcat/lib
 else
 	TOOLSJAR=~/Development/let0596_letterboxd/tools/tools/target/letterboxd-tools-1.0-SNAPSHOT-jar-with-dependencies.jar
-	TMPDIR=~/tmp/$TMPDIRNAME
+	if [ "x$TMPDIRNAME" != "x" ]; then
+		TMPDIR=~/tmp/$TMPDIRNAME
+	fi
 	TOMCATLIBDIR=~/Library/Tomcat/Current/lib
 fi
 
-mkdir -p "$TMPDIR"
+if [ "x$TMPDIR" != "x" ]; then
+	mkdir -p "$TMPDIR"
+fi
 
 CP=$TOOLSJAR:`ls $TOMCATLIBDIR/*.jar | xargs echo | sed -e 's/ /:/g'`

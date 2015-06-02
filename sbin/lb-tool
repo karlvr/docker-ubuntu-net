@@ -1,0 +1,20 @@
+#!/bin/bash
+#
+# Generic tool script
+
+TMPDIRNAME=letterboxd-tools
+
+. $(dirname $0)/../libexec/tool-base.sh
+
+TOOL_CLASS="$1"
+
+JAVA_OPTS="-Xmx4096M"
+#JAVA_OPTS="$JAVA_OPTS -XX:+UseConcMarkSweepGC -XX:+CMSIncrementalMode"
+JAVA_OPTS="$JAVA_OPTS -Djava.io.tmpdir="$TMPDIR" -cp $CP"
+if [ $DEV == 0 ]; then
+	JAVA_OPTS="$JAVA_OPTS -Dletterboxd.live=true"
+fi
+#JAVA_OPTS="$JAVA_OPTS -Dletterboxd.useCachedNetflixData=true"
+#JAVA_OPTS="$JAVA_OPTS -Dletterboxd.useExistingSearchIndex=true"
+
+java $JAVA_OPTS "$TOOL_CLASS" $*
