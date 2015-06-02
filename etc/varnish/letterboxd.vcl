@@ -5,6 +5,7 @@ vcl 4.0;
 import geoip;
 import digest;
 import directors;
+import cookie;
 
 # Backends
 
@@ -320,12 +321,23 @@ if (req.http.Host == "varnish.letterboxd.com" && req.url ~ "^/robots.txt") {
   }
 
   #LB
+
+  unset req.http.X-Supermodel-User-Stripped;
+  unset req.http.X-Letterboxd-Filter-Stripped;
+
   set req.http.X-Letterboxd-Cookie-Set = "";
+  set req.http.X-Supermodel-Cookies-Allowed = "X-this-string-cant-be-empty-or-no-filtering-occurs";
   if (req.http.X-Supermodel-Path ~ "(\?|&)esiAllowUser=true(&|$)") {
     set req.http.X-Letterboxd-Cookie-Set = req.http.X-Letterboxd-Cookie-Set + "USER ";
+    set req.http.X-Supermodel-Cookies-Allowed = req.http.X-Supermodel-Cookies-Allowed + ",com.xk72.webparts.csrf,com.xk72.webparts.user,com.xk72.webparts.user.CURRENT";
+  } else {
+    set req.http.X-Supermodel-User-Stripped = "YES"; # Added by GRB
   }
   if (req.http.X-Supermodel-Path ~ "(\?|&)esiAllowFilters=true(&|$)") {
     set req.http.X-Letterboxd-Cookie-Set = req.http.X-Letterboxd-Cookie-Set + "FILTERS ";
+    set req.http.X-Supermodel-Cookies-Allowed = req.http.X-Supermodel-Cookies-Allowed + ",hideShortsFilter,hideUnreleasedFilter,hideWatchlistedFilter,watchedOrUnwatchedFilter";
+  } else {
+    set req.http.X-Letterboxd-Filter-Stripped = "YES"; # Added by GRB
   }
   if (!(req.http.X-Supermodel-Path ~ "(\?|&)esiAllowGeoip=true(&|$)")) {
     unset req.http.X-Supermodel-Country-Code;
@@ -333,10 +345,15 @@ if (req.http.Host == "varnish.letterboxd.com" && req.url ~ "^/robots.txt") {
   }
 
   #
+  # Cookies
+  #
+  cookie.parse(req.http.Cookie);
+
+  #
   # CSRF handling
   #
 
-  if (!(req.http.Cookie ~ "(^|;\s*)com\.xk72\.webparts\.csrf=")) {
+  if (!cookie.isset("com.xk72.webparts.csrf")) {
     # There isn't a CSRF so we generate one in VCL, as we strip cookies set by the backend.
     # We pass the CSRF back to the client as a Set-Cookie in vcl_deliver. That will only work if this
     # request is not an ESI, as ESI responses can't set headers.
@@ -349,48 +366,27 @@ if (req.http.Host == "varnish.letterboxd.com" && req.url ~ "^/robots.txt") {
 
     # Add it to the request cookie. Note that we may strip it below, but it's not there to not strip if appropriate.
     # So we will _always_ have a CSRF cookie.
-    if (req.http.Cookie) {
-      set req.http.Cookie = req.http.Cookie + "; com.xk72.webparts.csrf=" + req.http.X-Supermodel-Generated-CSRF;
-    } else {
-      set req.http.Cookie = "com.xk72.webparts.csrf=" + req.http.X-Supermodel-Generated-CSRF;
-    }
+    cookie.set("com.xk72.webparts.csrf", req.http.X-Supermodel-Generated-CSRF);
   }
 
   #
   # Cookie handling
   #
 
-  unset req.http.X-Supermodel-User-Stripped;
-  unset req.http.X-Letterboxd-Filter-Stripped;
+  set req.http.X-Letterboxd-UseMobileSite = cookie.get("useMobileSite");
 
-  # KVR: Only preserve some cookies
-  if (req.http.Cookie) {
-    # https://www.varnish-cache.org/trac/wiki/VCLExampleRemovingSomeCookies
-    set req.http.Cookie = ";" + req.http.Cookie;
-    set req.http.Cookie = regsuball(req.http.Cookie, "; +", ";");
+  # Only preserve some cookies
+  cookie.filter_except(req.http.X-Supermodel-Cookies-Allowed);
 
-    #LB
-    if (req.http.X-Letterboxd-Cookie-Set ~ "(^|\s)USER(\s|$)") {
-      # For the user cookieSet we allow the user related cookies, and the CSRF to come through.
-      set req.http.Cookie = regsuball(req.http.Cookie, ";(com\.xk72\.webparts\.user(\.CURRENT)?|com\.xk72\.webparts\.csrf)=", "; \1=");
-    } else {
-      set req.http.X-Supermodel-User-Stripped = "YES"; # Added by GRB
-    }
-    if (req.http.X-Letterboxd-Cookie-Set ~ "(^|\s)FILTERS(\s|$)") {
-      set req.http.Cookie = regsuball(req.http.Cookie, ";(hideShortsFilter|hideUnreleasedFilter|hideWatchlistedFilter|watchedOrUnwatchedFilter)=", "; \1=");
-    } else {
-      set req.http.X-Letterboxd-Filter-Stripped = "YES"; # Added by GRB
-    }
-
-    set req.http.Cookie = regsuball(req.http.Cookie, ";(useMobileSite)=yes", "; \1=yes"); # Allow useMobileSite=yes
-    set req.http.Cookie = regsuball(req.http.Cookie, ";(useMobileSite)=no", "; \1=no"); # Allow useMobileSite=no (don't allow the deprecated useMobileSite=undecided)
-    set req.http.Cookie = regsuball(req.http.Cookie, ";[^ ][^;]*", "");
-    set req.http.Cookie = regsuball(req.http.Cookie, "^[; ]+|[; ]+$", "");
-
-    if (req.http.Cookie == "") {
-        unset req.http.Cookie;
-    }
+  if (req.http.X-Letterboxd-UseMobileSite == "yes") {
+    cookie.set("useMobileSite", "yes");
+  } else if (req.http.X-Letterboxd-UseMobileSite == "no") {
+    cookie.set("useMobileSite", "no");
   }
+  unset req.http.X-Letterboxd-UseMobileSite;
+
+  set req.http.Cookie = cookie.get_string();
+  cookie.clean();
 
   # KVR: Remove all cookies from the request before sending to the backend, so we do not
   # personalise anything.
