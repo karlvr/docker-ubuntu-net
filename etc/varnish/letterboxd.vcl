@@ -541,10 +541,14 @@ sub vcl_backend_response {
   }
 
   # KVR: Don't cache 404s etc for very long, as these are possibly new pages being created
-  if (beresp.status >= 400 && beresp.status <= 499) {
+  if (beresp.status == 404) {
     set bereq.http.Fastly-Cachetype = "NOTFOUND";
     set beresp.ttl = 10s;
     set beresp.grace = 30s;
+    return (deliver);
+  } else if (beresp.status >= 400 && beresp.status <= 499) {
+    set beresp.ttl = 5m;
+    set beresp.grace = 2m;
     return (deliver);
   }
 
