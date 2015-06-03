@@ -8,6 +8,7 @@ import directors;
 import cookie;
 import urlcode;
 import header;
+import std;
 
 include "inc/backends.vcl";
 include "inc/functions.vcl";
@@ -73,9 +74,6 @@ sub vcl_recv {
   set req.http.X-Supermodel-Country-Code = geoip.country_code("" + client.ip);
   unset req.http.X-Supermodel-City; # We're not using City at the moment
   #set req.http.X-Supermodel-City = geoip.city;
-
-  /* Backup original cookie */
-  set req.http.X-Supermodel-Original-Cookie = req.http.Cookie;
 
   /* Normalize the request */
   call req_normalize_accept_encoding;
@@ -364,8 +362,8 @@ sub vcl_deliver {
   /* 401 support - handle forbidden responses where we have stripped the user details */
   if (resp.status == 401 && req.http.X-Supermodel-User-Stripped == "YES") {
     # Restart the request, not stripping the user details this time.
+    std.rollback(req);
     set req.http.X-Supermodel-Allow-User = "YES";
-    set req.http.Cookie = req.http.X-Supermodel-Original-Cookie;
     return(restart);
   }
 
@@ -391,7 +389,6 @@ sub vcl_deliver {
   if (client.ip ~ debug) {
     set resp.http.X-Supermodel-Debug-VCL-Version = "72";
     set resp.http.X-Supermodel-Debug-Cookie = req.http.Cookie;
-    set resp.http.X-Supermodel-Debug-Original-Cookie = req.http.X-Supermodel-Original-Cookie;
     set resp.http.X-Supermodel-Debug-Path = req.http.X-Supermodel-Path;
     set resp.http.X-Supermodel-Debug-Dont-Modify = req.http.X-Supermodel-Dont-Modify;
     set resp.http.X-Supermodel-Debug-URL = req.url;
