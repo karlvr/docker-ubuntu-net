@@ -537,7 +537,7 @@ sub vcl_deliver {
 
     unset resp.http.X-Supermodel-Removed-Set-Cookie;
   }
-  
+
   return(deliver);
 }
 
@@ -709,27 +709,16 @@ sub vcl_pass {
 }
 
 sub vcl_backend_fetch {
-  call my_tidy_up_bereq;
+  call fetch_tidy_bereq;
   return (fetch);
 }
 
-sub my_tidy_up_bereq {
-  # KVR: Remove headers that Fastly should have tidied up
-  # KVR: Commented this out as I suspect it breaks shielding and causes loops inside Fastly.
-  #unset bereq.http.Fastly-Temp-XFF;
-
-  # KVR: Remove headers we've added for internal use that we don't need to send to the backend
-  # unset bereq.http.X-Supermodel-Generated-CSRF;
-  # unset bereq.http.X-Supermodel-Dont-Modify;
+sub fetch_tidy_bereq {
+  /* Remove headers we've added for internal use that we don't need to send to the backend */
+  unset bereq.http.X-Supermodel-Generated-CSRF;
   unset bereq.http.X-Supermodel-Path;
-  unset bereq.http.X-Supermodel-Development;
-  # unset bereq.http.X-Supermodel-User; # We do not pass the X-Supermodel-User header to the backend, since it's an unreliable indicator of whether the user is still actually logged in
-  # unset bereq.http.X-Supermodel-Original-Cookie;
+  unset bereq.http.X-Supermodel-Original-Cookie;
   unset bereq.http.X-Supermodel-Cookie-Domain;
-
-  # We do not remove X-Supermodel-ESI, so the backend will know that we support ESI.
-
-  # unset bereq.http.X-Letterboxd-Cookie-Set;
 }
 
 sub deliver_add_csrf {
