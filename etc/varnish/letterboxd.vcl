@@ -387,23 +387,22 @@ sub vcl_deliver {
   }
 
   if (client.ip ~ debug) {
-    set resp.http.X-Supermodel-Debug-VCL-Version = "72";
-    set resp.http.X-Supermodel-Debug-Cookie = req.http.Cookie;
-    set resp.http.X-Supermodel-Debug-Path = req.http.X-Supermodel-Path;
-    set resp.http.X-Supermodel-Debug-Dont-Modify = req.http.X-Supermodel-Dont-Modify;
-    set resp.http.X-Supermodel-Debug-URL = req.url;
+    set resp.http.X-Debug-Cookie = req.http.Cookie;
+    set resp.http.X-Debug-Path = req.http.X-Supermodel-Path;
+    set resp.http.X-Debug-Dont-Modify = req.http.X-Supermodel-Dont-Modify;
+    set resp.http.X-Debug-URL = req.url;
 
     #LB
-    set resp.http.X-Letterboxd-Debug-Cookie-Set = req.http.X-Letterboxd-Cookie-Set;
-    set resp.http.X-Letterboxd-Debug-Cacheable = req.http.X-Letterboxd-Cacheable;
-    set resp.http.X-Letterboxd-Debug-Cacheable-Reason = req.http.X-Letterboxd-Cacheable-Reason;
+    set resp.http.X-Debug-Cookie-Set = req.http.X-Letterboxd-Cookie-Set;
+    set resp.http.X-Debug-Cacheable = req.http.X-Letterboxd-Cacheable;
+    set resp.http.X-Debug-Cacheable-Reason = req.http.X-Letterboxd-Cacheable-Reason;
   } else {
-    /* Clean the response */
+    /* Clean the response - not in debug mode */
     unset resp.http.Surrogate-Key;
     unset resp.http.Surrogate-Control;
-
-    unset resp.http.X-Supermodel-Removed-Set-Cookie;
   }
+
+  unset resp.http.X-Supermodel-Removed-Set-Cookie;
 }
 
 sub vcl_synth {
