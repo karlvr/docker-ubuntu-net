@@ -310,6 +310,160 @@ sub vcl_recv {
   return(hash);
 }
 
+sub vcl_pipe {
+  set req.http.X-Cache-Type = "PIPE";
+
+  # By default Connection: close is set on all piped requests, to stop
+  # connection reuse from sending future requests directly to the
+  # (potentially) wrong backend. If you do want this to happen, you can undo
+  # it here.
+  # unset bereq.http.connection;
+  return (pipe);
+}
+
+sub vcl_pass {
+  set req.http.X-Cache-Type = "PASS";
+
+  return (fetch);
+}
+
+sub vcl_hash {
+  hash_data(req.url);
+  hash_data(req.http.host);
+
+#   No need to cache logged-in / logged-out separately, since the back end doesn't get this information anymore,
+#   so it won't produce different templates.
+#   Note that the cache-control will be private if there is a user cookie
+#
+#   # KVR: Cache differently for logged in vs not
+#   if (req.http.X-Supermodel-User == "YES") {
+#     set req.hash += "USER";
+#   } else {
+#     set req.hash += "ANON";
+#   }
+
+  # KVR: Cache differently according to cookies allowed through
+  hash_data(req.http.Cookie);
+
+  # KVR: Geolocation
+  hash_data(req.http.X-Supermodel-Country-Code);
+  hash_data(req.http.X-Supermodel-City);
+
+  # KVR: Add to the hash any other things that affect the page output
+
+  # For purge all
+  if (req.url ~ "^/esi/.*/poster/" || req.url ~ "^/ajax/poster/") {
+    /* Posters don't participate in a purge all - when posters need purging, update the version below */
+    hash_data("poster.v1");
+  } else {
+    hash_data("#####GENERATION#####");
+  }
+  return (lookup);
+}
+
+sub vcl_hit {
+  set req.http.X-Cache-Type = "HIT";
+
+  if (obj.ttl >= 0s) {
+      // A pure unadultered hit, deliver it
+      return (deliver);
+  }
+  if (obj.ttl + obj.grace > 0s) {
+      // Object is in grace, deliver it
+      // Automatically triggers a background fetch
+      return (deliver);
+  }
+  // fetch & deliver once we get the result
+  return (fetch);
+}
+
+sub vcl_miss {
+  set req.http.X-Cache-Type = "MISS";
+
+  return(fetch);
+}
+
+sub vcl_deliver {
+  /* 401 support - handle forbidden responses where we have stripped the user details */
+  if (resp.status == 401 && req.http.X-Supermodel-User-Stripped == "YES") {
+    # Restart the request, not stripping the user details this time.
+    set req.http.X-Supermodel-Allow-User = "YES";
+    set req.http.Cookie = req.http.X-Supermodel-Original-Cookie;
+    return(restart);
+  }
+
+  /* Info */
+  header.append(resp.http.X-Served-By, server.identity);
+
+  if (req.http.X-Cache-Type) {
+    header.append(resp.http.X-Cache, req.http.X-Cache-Type);
+  }
+
+  header.append(resp.http.X-Cache-Hits, "" + obj.hits);
+
+  unset resp.http.X-Varnish;
+
+  # Pop the surrogate headers into the request object so we can reference them later
+  set req.http.Surrogate-Key = resp.http.Surrogate-Key;
+  set req.http.Surrogate-Control = resp.http.Surrogate-Control;
+
+  if (resp.http.X-Supermodel-Removed-Set-Cookie) {
+    call deliver_add_csrf;
+  }
+
+  if (client.ip ~ debug) {
+    set resp.http.X-Supermodel-Debug-VCL-Version = "72";
+    set resp.http.X-Supermodel-Debug-Cookie = req.http.Cookie;
+    set resp.http.X-Supermodel-Debug-Original-Cookie = req.http.X-Supermodel-Original-Cookie;
+    set resp.http.X-Supermodel-Debug-Path = req.http.X-Supermodel-Path;
+    set resp.http.X-Supermodel-Debug-Dont-Modify = req.http.X-Supermodel-Dont-Modify;
+    set resp.http.X-Supermodel-Debug-URL = req.url;
+
+    #LB
+    set resp.http.X-Letterboxd-Debug-Cookie-Set = req.http.X-Letterboxd-Cookie-Set;
+    set resp.http.X-Letterboxd-Debug-Cacheable = req.http.X-Letterboxd-Cacheable;
+    set resp.http.X-Letterboxd-Debug-Cacheable-Reason = req.http.X-Letterboxd-Cacheable-Reason;
+  } else {
+    /* Clean the response */
+    unset resp.http.Surrogate-Key;
+    unset resp.http.Surrogate-Control;
+
+    unset resp.http.X-Supermodel-Removed-Set-Cookie;
+  }
+
+  return(deliver);
+}
+
+sub vcl_synth {
+  if (resp.status == 900) {
+    set resp.status = 200;
+    set resp.http.Content-type = "text/plain";
+    if (req.url ~ "-js/") {
+      synthetic({"/* ESI error */ window.componentFailed = true; /* /ESI error */"});
+    } else {
+      synthetic({"<!-- ESI error "} + req.url + {" --><script>window.componentFailed = true;</script><!-- /ESI error -->"});
+    }
+    return(deliver);
+  } else if (resp.status == 902) {
+    set resp.status = 200;
+    set resp.http.Content-type = "text/plain";
+    synthetic({"User-agent: *
+Disallow: /"});
+    return (deliver);
+  }
+
+  return (deliver);
+}
+
+#####################################################################################
+# BACKEND
+#####################################################################################
+
+sub vcl_backend_fetch {
+  call fetch_tidy_bereq;
+  return (fetch);
+}
+
 sub vcl_backend_response {
   # Check if we've indicated that this response is uncacheable
   if (bereq.http.X-Supermodel-Uncacheable == "YES") {
@@ -422,99 +576,6 @@ sub vcl_backend_response {
   return(deliver);
 }
 
-sub vcl_hit {
-  set req.http.X-Cache-Type = "HIT";
-
-  if (obj.ttl >= 0s) {
-      // A pure unadultered hit, deliver it
-      return (deliver);
-  }
-  if (obj.ttl + obj.grace > 0s) {
-      // Object is in grace, deliver it
-      // Automatically triggers a background fetch
-      return (deliver);
-  }
-  // fetch & deliver once we get the result
-  return (fetch);
-}
-
-sub vcl_miss {
-  set req.http.X-Cache-Type = "MISS";
-
-  return(fetch);
-}
-
-sub vcl_deliver {
-  /* 401 support - handle forbidden responses where we have stripped the user details */
-  if (resp.status == 401 && req.http.X-Supermodel-User-Stripped == "YES") {
-    # Restart the request, not stripping the user details this time.
-    set req.http.X-Supermodel-Allow-User = "YES";
-    set req.http.Cookie = req.http.X-Supermodel-Original-Cookie;
-    return(restart);
-  }
-
-  /* Info */
-  header.append(resp.http.X-Served-By, server.identity);
-
-  if (req.http.X-Cache-Type) {
-    header.append(resp.http.X-Cache, req.http.X-Cache-Type);
-  }
-
-  header.append(resp.http.X-Cache-Hits, "" + obj.hits);
-
-  unset resp.http.X-Varnish;
-
-  # Pop the surrogate headers into the request object so we can reference them later
-  set req.http.Surrogate-Key = resp.http.Surrogate-Key;
-  set req.http.Surrogate-Control = resp.http.Surrogate-Control;
-
-  if (resp.http.X-Supermodel-Removed-Set-Cookie) {
-    call deliver_add_csrf;
-  }
-
-  if (client.ip ~ debug) {
-    set resp.http.X-Supermodel-Debug-VCL-Version = "72";
-    set resp.http.X-Supermodel-Debug-Cookie = req.http.Cookie;
-    set resp.http.X-Supermodel-Debug-Original-Cookie = req.http.X-Supermodel-Original-Cookie;
-    set resp.http.X-Supermodel-Debug-Path = req.http.X-Supermodel-Path;
-    set resp.http.X-Supermodel-Debug-Dont-Modify = req.http.X-Supermodel-Dont-Modify;
-    set resp.http.X-Supermodel-Debug-URL = req.url;
-
-    #LB
-    set resp.http.X-Letterboxd-Debug-Cookie-Set = req.http.X-Letterboxd-Cookie-Set;
-    set resp.http.X-Letterboxd-Debug-Cacheable = req.http.X-Letterboxd-Cacheable;
-    set resp.http.X-Letterboxd-Debug-Cacheable-Reason = req.http.X-Letterboxd-Cacheable-Reason;
-  } else {
-    /* Clean the response */
-    unset resp.http.Surrogate-Key;
-    unset resp.http.Surrogate-Control;
-
-    unset resp.http.X-Supermodel-Removed-Set-Cookie;
-  }
-
-  return(deliver);
-}
-
-sub vcl_synth {
-  if (resp.status == 900) {
-    set resp.status = 200;
-    set resp.http.Content-type = "text/plain";
-    if (req.url ~ "-js/") {
-      synthetic({"/* ESI error */ window.componentFailed = true; /* /ESI error */"});
-    } else {
-      synthetic({"<!-- ESI error "} + req.url + {" --><script>window.componentFailed = true;</script><!-- /ESI error -->"});
-    }
-    return(deliver);
-  } else if (resp.status == 902) {
-    set resp.status = 200;
-    set resp.http.Content-type = "text/plain";
-    synthetic({"User-agent: *
-Disallow: /"});
-    return (deliver);
-  }
-
-  return (deliver);
-}
 
 sub vcl_backend_error {
   if (bereq.http.Accept ~ "html") {
@@ -654,62 +715,4 @@ sub vcl_backend_error {
     synthetic({""});
     return (deliver);
   }
-}
-
-sub vcl_pass {
-  set req.http.X-Cache-Type = "PASS";
-
-  return (fetch);
-}
-
-sub vcl_backend_fetch {
-  call fetch_tidy_bereq;
-  return (fetch);
-}
-
-sub vcl_hash {
-  {
-    hash_data(req.url);
-    hash_data(req.http.host);
-
-#   No need to cache logged-in / logged-out separately, since the back end doesn't get this information anymore,
-#   so it won't produce different templates.
-#   Note that the cache-control will be private if there is a user cookie
-#
-#   # KVR: Cache differently for logged in vs not
-#   if (req.http.X-Supermodel-User == "YES") {
-#     set req.hash += "USER";
-#   } else {
-#     set req.hash += "ANON";
-#   }
-
-    # KVR: Cache differently according to cookies allowed through
-    hash_data(req.http.Cookie);
-
-    # KVR: Geolocation
-    hash_data(req.http.X-Supermodel-Country-Code);
-    hash_data(req.http.X-Supermodel-City);
-
-    # KVR: Add to the hash any other things that affect the page output
-
-    # For purge all
-    if (req.url ~ "^/esi/.*/poster/" || req.url ~ "^/ajax/poster/") {
-      /* Posters don't participate in a purge all - when posters need purging, update the version below */
-      hash_data("poster.v1");
-    } else {
-      hash_data("#####GENERATION#####");
-    }
-    return (lookup);
-  }
-}
-
-sub vcl_pipe {
-  set req.http.X-Cache-Type = "PIPE";
-
-  # By default Connection: close is set on all piped requests, to stop
-  # connection reuse from sending future requests directly to the
-  # (potentially) wrong backend. If you do want this to happen, you can undo
-  # it here.
-  # unset bereq.http.connection;
-  return (pipe);
 }
