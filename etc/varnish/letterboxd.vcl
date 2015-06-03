@@ -578,24 +578,32 @@ sub vcl_backend_response {
 }
 
 sub vcl_hit {
-#--FASTLY HIT START
+  set req.http.X-Supermodel-Cache-Type = "HIT";
 
-# we cannot reach obj.ttl and obj.grace in vcl_deliver, save them when we can in vcl_hit
-  set req.http.Fastly-Tmp-Obj-TTL = obj.ttl;
-  set req.http.Fastly-Tmp-Obj-Grace = obj.grace;
+# #--FASTLY HIT START
 
-  {
-    set req.http.Fastly-Cachetype = "HIT";
+# # we cannot reach obj.ttl and obj.grace in vcl_deliver, save them when we can in vcl_hit
+#   set req.http.Fastly-Tmp-Obj-TTL = obj.ttl;
+#   set req.http.Fastly-Tmp-Obj-Grace = obj.grace;
+
+#   {
+#     set req.http.Fastly-Cachetype = "HIT";
 
     
-  }
-#--FASTLY HIT END
+#   }
+# #--FASTLY HIT END
 
-  if (obj.ttl <= 0s) {
-    return(pass);
+  if (obj.ttl >= 0s) {
+      // A pure unadultered hit, deliver it
+      return (deliver);
   }
-
-  return(deliver);
+  if (obj.ttl + obj.grace > 0s) {
+      // Object is in grace, deliver it
+      // Automatically triggers a background fetch
+      return (deliver);
+  }
+  // fetch & deliver once we get the result
+  return (fetch);
 }
 
 sub vcl_miss {
