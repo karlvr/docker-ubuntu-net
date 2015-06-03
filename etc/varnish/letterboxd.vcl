@@ -602,13 +602,13 @@ sub vcl_miss {
 #--FASTLY MISS START
 
 # this is not a hit after all, clean up these set in vcl_hit
-  unset req.http.Fastly-Tmp-Obj-TTL;
-  unset req.http.Fastly-Tmp-Obj-Grace;
+  # unset req.http.Fastly-Tmp-Obj-TTL;
+  # unset req.http.Fastly-Tmp-Obj-Grace;
 
-  {
-    if (req.http.Fastly-Check-SHA1) {
-       return(synth(550, "Doesnt exist"));
-    }
+  # {
+  #   if (req.http.Fastly-Check-SHA1) {
+  #      return(synth(550, "Doesnt exist"));
+  #   }
     
 #--FASTLY BEREQ START
     # {
@@ -648,7 +648,7 @@ sub vcl_miss {
     set req.http.Fastly-Cachetype = "MISS";
 
     
-  }
+  # }
 #--FASTLY MISS STOP
 
   return(fetch);
