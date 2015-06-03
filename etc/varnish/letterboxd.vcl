@@ -519,20 +519,25 @@ sub vcl_deliver {
   }
 
   if (client.ip ~ debug) {
-    set resp.http.X-Supermodel-VCL-Version = "72";
-    set resp.http.X-Supermodel-Cookie = req.http.Cookie;
-    set resp.http.X-Supermodel-Original-Cookie = req.http.X-Supermodel-Original-Cookie;
-    set resp.http.X-Supermodel-Path = req.http.X-Supermodel-Path;
-    set resp.http.X-Supermodel-Dont-Modify = req.http.X-Supermodel-Dont-Modify;
-    set resp.http.X-Supermodel-URL = req.url;
-    set resp.http.X-Letterboxd-Cacheable = req.http.X-Letterboxd-Cacheable;
-    set resp.http.X-Letterboxd-Cacheable-Reason = req.http.X-Letterboxd-Cacheable-Reason;
+    set resp.http.X-Supermodel-Debug-VCL-Version = "72";
+    set resp.http.X-Supermodel-Debug-Cookie = req.http.Cookie;
+    set resp.http.X-Supermodel-Debug-Original-Cookie = req.http.X-Supermodel-Original-Cookie;
+    set resp.http.X-Supermodel-Debug-Path = req.http.X-Supermodel-Path;
+    set resp.http.X-Supermodel-Debug-Dont-Modify = req.http.X-Supermodel-Dont-Modify;
+    set resp.http.X-Supermodel-Debug-URL = req.url;
 
     #LB
-    set resp.http.X-Letterboxd-Cookie-Set = req.http.X-Letterboxd-Cookie-Set;
+    set resp.http.X-Letterboxd-Debug-Cookie-Set = req.http.X-Letterboxd-Cookie-Set;
+    set resp.http.X-Letterboxd-Debug-Cacheable = req.http.X-Letterboxd-Cacheable;
+    set resp.http.X-Letterboxd-Debug-Cacheable-Reason = req.http.X-Letterboxd-Cacheable-Reason;
   } else {
+    /* Clean the response */
+    unset resp.http.Surrogate-Key;
+    unset resp.http.Surrogate-Control;
+
     unset resp.http.X-Supermodel-Removed-Set-Cookie;
   }
+  
   return(deliver);
 }
 
