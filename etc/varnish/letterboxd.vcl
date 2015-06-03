@@ -331,25 +331,6 @@ sub vcl_backend_response {
     }
   }
 
-#--FASTLY FETCH START
-
-
-# record which cache ran vcl_fetch for this object and when
-  # set beresp.http.Fastly-Debug-Path = "(F " + server.identity + " " + now + ") " + if(beresp.http.Fastly-Debug-Path, beresp.http.Fastly-Debug-Path, "");
-
-# generic mechanism to vary on something
-  if (bereq.http.Fastly-Vary-String) {
-    if (beresp.http.Vary) {
-      set beresp.http.Vary = "Fastly-Vary-String, " + beresp.http.Vary;
-    } else {
-      set beresp.http.Vary = "Fastly-Vary-String, ";
-    }
-  }
-  
-    
-    
-#--FASTLY FETCH END
-
   if ((beresp.status == 500 || beresp.status == 503) && bereq.retries < 1 && (bereq.method == "GET" || bereq.method == "HEAD")) {
     return(retry);
   }
@@ -357,26 +338,6 @@ sub vcl_backend_response {
   if (bereq.retries > 0 ) {
     set beresp.http.Fastly-Restarts = bereq.retries;
   }
-
-  # if (beresp.http.Content-Type ~ "^(text/html|text/plain|text/xml|text/css|application/xml|application/xhtml+xml|application/x-javascript|text/javascript|application/javascript|text/json|application/json)") {
-  #   if (client.ip ~ debug) {
-  #     set beresp.http.X-Supermodel-GZIP-Eligible = "YES";
-  #   }
-
-  #   if (req.http.X-Supermodel-Accept-Encoding ~ "gzip" && req.url ~ "budapest") {
-  #     set beresp.gzip = true;
-
-  #     if (client.ip ~ debug) {
-  #       set beresp.http.X-Supermodel-GZIP = "YES";
-  #     }
-  #   }
-
-  #   if (beresp.http.Vary) {
-  #     set beresp.http.Vary = beresp.http.Vary ",Accept-Encoding";
-  #   } else {
-  #     set beresp.http.Vary = "Accept-Encoding";
-  #   }
-  # }
 
   set beresp.http.X-Backend = beresp.backend.name;
 
@@ -747,47 +708,12 @@ sub vcl_hash {
 }
 
 sub vcl_pipe {
-#--FASTLY PIPE START
-  {
-    #  error 403 "Forbidden";      
-    
-#--FASTLY BEREQ START
-    {
-      if (req.http.Fastly-Original-Cookie) {
-        set bereq.http.Cookie = req.http.Fastly-Original-Cookie;
-      }
-      
-      if (req.http.Fastly-Original-URL) {
-        set bereq.url = req.http.Fastly-Original-URL;
-      }
-      {
-        if (req.http.Fastly-FF) {
-          set bereq.http.Fastly-Client = "1";
-        }
-      }
-      {
-        # do not send this to the backend
-        unset bereq.http.Fastly-Original-Cookie;
-        unset bereq.http.Fastly-Original-URL;
-        unset bereq.http.Fastly-Vary-String;
-        unset bereq.http.X-Varnish-Client;
-      }
-      if (req.http.Fastly-Temp-XFF) {
-         if (req.http.Fastly-Temp-XFF == "") {
-           unset bereq.http.X-Forwarded-For;
-         } else {
-           set bereq.http.X-Forwarded-For = req.http.Fastly-Temp-XFF;
-         }
-         # unset bereq.http.Fastly-Temp-XFF;
-      }
-    }
-#--FASTLY BEREQ STOP
+  set req.http.X-Cache-Type = "PIPE";
 
-
-    #;
-    set req.http.Fastly-Cachetype = "PIPE";
-    set bereq.http.connection = "close";
-  }
-#--FASTLY PIPE STOP
-
+  # By default Connection: close is set on all piped requests, to stop
+  # connection reuse from sending future requests directly to the
+  # (potentially) wrong backend. If you do want this to happen, you can undo
+  # it here.
+  # unset bereq.http.connection;
+  return (pipe);
 }
