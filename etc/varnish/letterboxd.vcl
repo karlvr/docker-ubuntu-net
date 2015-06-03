@@ -7,6 +7,7 @@ import digest;
 import directors;
 import cookie;
 import urlcode;
+import header;
 
 # Backends
 
@@ -509,10 +510,7 @@ sub vcl_backend_response {
   # however we want to cache them for this user.
   if (bereq.http.X-Letterboxd-Cookie-Set ~ "(^|\s)USER(\s|$)") {
     if (beresp.http.Cache-Control ~ "private") {
-      set beresp.http.Cache-Control = regsuball(beresp.http.Cache-Control, "(^|,)\s*private\s*", "");
-      if (beresp.http.Cache-Control == "") {
-        unset beresp.http.Cache-Control;
-      }
+      header.remove(beresp.http.Cache-Control, "private");
       if (bereq.http.X-Supermodel-Debug == "YES") {
         set beresp.http.X-Letterboxd-Removed-Cache-Control-Private = "YES";
       }
@@ -543,10 +541,10 @@ sub vcl_backend_response {
   # parts that have different cookie policies, so we must send a Cache-Control: private header to the browser.
   if (bereq.http.X-Supermodel-ESI == "YES" && bereq.http.X-Supermodel-User == "YES") {
     if (beresp.http.Cache-Control !~ "private") {
-      if (beresp.http.Cache-Control) {
-        set beresp.http.Cache-Control = beresp.http.Cache-Control + ", private";
-      } else {
-        set beresp.http.Cache-Control = "private";
+      header.append(beresp.http.Cache-Control, "private");
+
+      if (bereq.http.X-Supermodel-Debug == "YES") {
+        set beresp.http.X-Supermodel-Debug-Added-Cache-Control-Private = "YES";
       }
     }
   }
