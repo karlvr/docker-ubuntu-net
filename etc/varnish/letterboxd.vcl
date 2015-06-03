@@ -108,9 +108,9 @@ sub vcl_recv {
   
 #--FASTLY RECV CODE END
 
-if (req.http.Host == "varnish.letterboxd.com" && req.url ~ "^/robots.txt") {
-  return(synth(902, "No robots"));
-}
+# if (req.http.Host == "varnish.letterboxd.com" && req.url ~ "^/robots.txt") {
+#   return(synth(902, "No robots"));
+# }
 
   # KVR: force the Host so we can test with Varnish on any URL
   #set req.http.Host = "letterboxd.com";
