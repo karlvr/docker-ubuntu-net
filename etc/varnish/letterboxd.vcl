@@ -108,9 +108,10 @@ sub vcl_recv {
   } else if (req.http.host ~ "letterboxd-dev\.com$") {
     set req.http.X-Supermodel-Cookie-Domain = "letterboxd-dev.com";
   } else if (req.http.host ~ "^www\.") {
-    set req.http.X-Supermodel-Cookie-Domain = regsub(req.http.host, "^www\.", "");
+    set req.http.X-Supermodel-Cookie-Domain = regsub(regsub(req.http.host, "^www\.", ""), ":.*", "");
   } else {
-    set req.http.X-Supermodel-Cookie-Domain = req.http.host;
+    /* No specific cookie domain for this host */
+    unset req.http.X-Supermodel-Cookie-Domain;
   }
 
   # Remove Accept-Language as it affects our fmt:format* tags and we cache things containing them
