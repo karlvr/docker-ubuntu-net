@@ -53,43 +53,43 @@ sub vcl_recv {
 
   # KVR: force the Host so we can test with Varnish on any URL
   # set req.http.Host = "letterboxd.com";
+
+  if (client.ip ~ debug) {
+    set req.http.X-Supermodel-Debug = "YES";
+  } else {
+    unset req.http.X-Supermodel-Debug;
+  }
   
+  /* Clean request - avoids abuse from clients */
   unset req.http.X-Supermodel-Generated-CSRF;
   unset req.http.X-Supermodel-Dont-Modify;
   unset req.http.X-Supermodel-ESI;
   unset req.http.X-Supermodel-User;
-  unset req.http.X-Supermodel-Debug;
   unset req.http.X-Letterboxd-Cacheable;
   unset req.http.X-Letterboxd-Cacheable-Reason;
 
-  if (client.ip ~ debug) {
-    set req.http.X-Supermodel-Debug = "YES";
-  }
-
-  call req_normalize_accept_encoding;
-
-  # KVR: Geolocation (always add headers, and then remove if not allowed later)
+  /* Geolocation - always add headers, and then remove if not allowed later */
   set req.http.X-Supermodel-Country-Code = geoip.country_code("" + client.ip);
   unset req.http.X-Supermodel-City; # We're not using City at the moment
   #set req.http.X-Supermodel-City = geoip.city;
 
-  #
-  # Store original cookie
-  #
-
+  /* Backup original cookie */
   set req.http.X-Supermodel-Original-Cookie = req.http.Cookie;
 
+  /* Normalize the request */
+  call req_normalize_accept_encoding;
 
   # Request methods that do not get served from cache or doctored by vcl_fetch
   if (req.method != "HEAD" && req.method != "GET" && req.method != "PURGE") {
     set req.http.X-Letterboxd-Cacheable = "NO";
     set req.http.X-Letterboxd-Cacheable-Reason = "HTTP METHOD";
+
     set req.http.X-Supermodel-Dont-Modify = "YES";
-    call allow_esi;
+    call req_allow_esi;
     return(pass);
   }
 
-  # Remove context paths on dev
+  /* Remove context paths on dev */
   if (req.http.host ~ "dev\.cactuslab\.com$" || req.http.host ~ "letterboxd-dev\.com$") {
     set req.http.X-Supermodel-Path = regsub(req.url, "^/letterboxd/", "/");
     set req.http.X-Supermodel-Development = "YES";
@@ -102,7 +102,7 @@ sub vcl_recv {
     return(synth(901, "Forced error"));
   }
 
-  # Cookie domains
+  /* Cookie domains */
   if (req.http.host ~ "letterboxd\.com$") {
     set req.http.X-Supermodel-Cookie-Domain = "letterboxd.com";
   } else if (req.http.host ~ "letterboxd-dev\.com$") {
@@ -113,18 +113,16 @@ sub vcl_recv {
     set req.http.X-Supermodel-Cookie-Domain = req.http.host;
   }
 
-  # KVR: Remove Accept-Language as it affects our fmt:format* tags and we cache things containing them
+  # Remove Accept-Language as it affects our fmt:format* tags and we cache things containing them
   unset req.http.Accept-Language;
 
-  # KVR: Remove User-Agent so there is no chance of doing anything special based upon it
+  # Remove User-Agent so there is no chance of doing anything special based upon it
   unset req.http.User-Agent;
 
-  # KVR: Allow stale pages to be served if necessary
-  # set req.grace = 5m;
-
+  /* Normalize the request */
   call req_normalize_url;
 
-  # KVR: Remove all cookies for our static paths, and proceed to lookup
+  /* Static assets */
   if (req.http.X-Supermodel-Path ~ "^/static/" || req.http.X-Supermodel-Path ~ "^/assets/" || req.http.X-Supermodel-Path ~ "^/_maint/") {
     unset req.http.Cookie;
     unset req.http.X-Supermodel-Country-Code;
@@ -133,7 +131,7 @@ sub vcl_recv {
   }
 
   # Allow ESI on everything that gets to this point.
-  call allow_esi;
+  call req_allow_esi;
 
   # Blacklist / Whitelist
   # the X-Letterboxd-Cacheable-Reason is only for debugging purposes, although both headers are passed through so we can check server-side for a faulty regex or missing case.
@@ -240,11 +238,6 @@ sub vcl_recv {
     return(pass);
   }
 
-  # KVR: Check if the user is signed in
-  if (req.http.Cookie ~ "(^|;\s*)com\.xk72\.webparts\.user(\.CURRENT)?=.*") {
-    set req.http.X-Supermodel-User = "YES"; # Need this so we know whether the cache-control needs to be private
-  }
-
   #LB
 
   unset req.http.X-Supermodel-User-Stripped;
@@ -256,51 +249,47 @@ sub vcl_recv {
     set req.http.X-Letterboxd-Cookie-Set = req.http.X-Letterboxd-Cookie-Set + "USER ";
     set req.http.X-Supermodel-Cookies-Allowed = req.http.X-Supermodel-Cookies-Allowed + ",com.xk72.webparts.csrf,com.xk72.webparts.user,com.xk72.webparts.user.CURRENT";
   } else {
-    set req.http.X-Supermodel-User-Stripped = "YES"; # Added by GRB
+    set req.http.X-Supermodel-User-Stripped = "YES";
   }
   if (req.http.X-Supermodel-Path ~ "(\?|&)esiAllowFilters=true(&|$)") {
     set req.http.X-Letterboxd-Cookie-Set = req.http.X-Letterboxd-Cookie-Set + "FILTERS ";
     set req.http.X-Supermodel-Cookies-Allowed = req.http.X-Supermodel-Cookies-Allowed + ",hideShortsFilter,hideUnreleasedFilter,hideWatchlistedFilter,watchedOrUnwatchedFilter";
   } else {
-    set req.http.X-Letterboxd-Filter-Stripped = "YES"; # Added by GRB
+    set req.http.X-Letterboxd-Filter-Stripped = "YES";
   }
   if (!(req.http.X-Supermodel-Path ~ "(\?|&)esiAllowGeoip=true(&|$)")) {
     unset req.http.X-Supermodel-Country-Code;
     unset req.http.X-Supermodel-City;
   }
 
-  #
-  # Cookies
-  #
+  /* Cookies */
   cookie.parse(req.http.Cookie);
 
-  #
-  # CSRF handling
-  #
+  if (cookie.isset("com.xk72.webparts.user.CURRENT")) {
+    set req.http.X-Supermodel-User = "YES"; # Need this so we know whether the cache-control needs to be private
+  }
 
   if (!cookie.isset("com.xk72.webparts.csrf")) {
-    # There isn't a CSRF so we generate one in VCL, as we strip cookies set by the backend.
-    # We pass the CSRF back to the client as a Set-Cookie in vcl_deliver. That will only work if this
-    # request is not an ESI, as ESI responses can't set headers.
-    # As we may contain ESIs, which don't see any of the headers the parent request sets, we need to ensure
-    # that the ESIs will generate the same CSRF. So we use properties of the request that the ESI will
-    # have the same as the parent request. Note that req.xid is identical for parent requests and ESI requests.
-    # This surprised the ESI tech support person. If that changes then this approach will break.
+    /* CSRF
+       There isn't a CSRF so we generate one in VCL, as we strip cookies set by the backend.
+       We pass the CSRF back to the client as a Set-Cookie in vcl_deliver. That will only work if this
+       request is not an ESI, as ESI responses can't set headers.
+       As we may contain ESIs, which don't see any of the headers the parent request sets, we need to ensure
+       that the ESIs will generate the same CSRF. So we use properties of the request that the ESI will
+       have the same as the parent request. Note that req.xid is identical for parent requests and ESI requests.
+       This surprised the ESI tech support person. If that changes then this approach will break.
+     */
     #set req.http.X-Supermodel-Generated-CSRF = randomstr(20, "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789");
     set req.http.X-Supermodel-Generated-CSRF = regsub(digest.hash_sha1(client.ip + req.xid), "^(.{20}).*$", "\1");
 
-    # Add it to the request cookie. Note that we may strip it below, but it's not there to not strip if appropriate.
-    # So we will _always_ have a CSRF cookie.
+    /* Add it to the request cookie. Note that we may strip it below, but it's not there to not strip if appropriate.
+       So we will _always_ have a CSRF cookie.
+     */
     cookie.set("com.xk72.webparts.csrf", req.http.X-Supermodel-Generated-CSRF);
   }
 
-  #
-  # Cookie handling
-  #
-
   set req.http.X-Letterboxd-UseMobileSite = cookie.get("useMobileSite");
 
-  # Only preserve some cookies
   cookie.filter_except(req.http.X-Supermodel-Cookies-Allowed);
 
   if (req.http.X-Letterboxd-UseMobileSite == "yes") {
@@ -320,9 +309,7 @@ sub vcl_recv {
   return(hash);
 }
 
-
-
-sub allow_esi {
+sub req_allow_esi {
   set req.http.X-Supermodel-ESI = "YES";
 }
 
