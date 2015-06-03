@@ -489,7 +489,7 @@ sub vcl_backend_response {
 
   set beresp.http.X-Backend = beresp.backend.name;
 
-  if (bereq.http.X-Supermodel-Dont-Modify) {
+  if (bereq.http.X-Supermodel-Dont-Modify == "YES") {
     return (deliver);
   }
 
