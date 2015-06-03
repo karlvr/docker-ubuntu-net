@@ -510,15 +510,9 @@ sub vcl_deliver {
 
   unset resp.http.X-Varnish;
 
-  # # Pop the surrogate headers into the request object so we can reference them later
-  # set req.http.Surrogate-Key = resp.http.Surrogate-Key;
-  # set req.http.Surrogate-Control = resp.http.Surrogate-Control;
-
-  # # If we are not forwarding or debugging unset the surrogate headers so they are not present in the response
-  # if (!req.http.Fastly-FF && !req.http.Fastly-Debug) {
-  #   unset resp.http.Surrogate-Key;
-  #   unset resp.http.Surrogate-Control;
-  # }
+  # Pop the surrogate headers into the request object so we can reference them later
+  set req.http.Surrogate-Key = resp.http.Surrogate-Key;
+  set req.http.Surrogate-Control = resp.http.Surrogate-Control;
 
   if (resp.http.X-Supermodel-Removed-Set-Cookie) {
     call deliver_add_csrf;
