@@ -9,52 +9,8 @@ import cookie;
 import urlcode;
 import header;
 
-# Backends
-
-# backend LB_charles {
-#     .first_byte_timeout = 60s;
-#     .connect_timeout = 5s;
-#     .max_connections = 200;
-#     .between_bytes_timeout = 60s;
-#     .port = "8082";
-#     .host = "127.0.0.1";
-# }
-
-backend LB_app1 {
-    .first_byte_timeout = 60s;
-    .connect_timeout = 5s;
-    .max_connections = 200;
-    .between_bytes_timeout = 60s;
-    .port = "80";
-    .host = "199.195.199.60";
-    .host_header = "letterboxd.com";
-    #.port = "8082";
-    #.host = "127.0.0.1";
-    .probe = {
-        .url = "/";
-        .timeout = 1s;
-        .interval = 5s;
-        .window = 5;
-        .threshold = 3;
-    }
-}
-
-backend LB_app1 {
-    .first_byte_timeout = 60s;
-    .connect_timeout = 5s;
-    .max_connections = 200;
-    .between_bytes_timeout = 60s;
-    .port = "80";
-    .host = "199.195.199.116";
-    .host_header = "letterboxd.com";
-    .probe = {
-        .url = "/";
-        .timeout = 1s;
-        .interval = 5s;
-        .window = 5;
-        .threshold = 3;
-    }
-}
+include "inc/backends.vcl";
+include "inc/functions.vcl";
 
 acl debug {
   "123.100.90.137";
@@ -70,16 +26,9 @@ acl purge {
   "123.100.90.137";
 }
 
-sub vcl_init {
-  new bar = directors.round_robin();
-  bar.add_backend(LB_app1);
-  bar.add_backend(LB_app1);
-  # bar.add_backend(LB_charles);
-}
-
 sub vcl_recv {
+  /* Bans */
   if (req.method == "DELETE" && req.url ~ "^/surrogate-key/") {
-    # Same ACL check as above:
     if (!client.ip ~ purge) {
       return(synth(403, "Not allowed."));
     }
@@ -90,51 +39,20 @@ sub vcl_recv {
     } else {
       ban("obj.http.Surrogate-Key ~ (^|\s)" + req.http.X-Supermodel-Purge-Key + "($|\s)");
     }
-    #ban("obj.http.Surrogate-Key ~ " + req.url);
 
-    # Throw a synthetic page so the
-    # request won't go to the backend.
+    # Throw a synthetic page so the request won't go to the backend.
     return(synth(200, "Ban added"));
   }
-
-#--FASTLY RECV CODE START
-  # if (req.restarts == 0) {
-  #   if (!req.http.X-Timer) {
-  #     set req.http.X-Timer = "S" + time.start.sec + "." + time.start.usec_frac;
-  #   }
-  #   set req.http.X-Timer = req.http.X-Timer + ",VS0";
-  # }
-
-            
-
-    
-  # default conditions
+   
+  /* Backend server */
   set req.backend_hint = bar.backend();
   
-
-  
-  # end default conditions
-
-  
-      
-  
-#--FASTLY RECV CODE END
-
 # if (req.http.Host == "varnish.letterboxd.com" && req.url ~ "^/robots.txt") {
 #   return(synth(902, "No robots"));
 # }
 
   # KVR: force the Host so we can test with Varnish on any URL
-  #set req.http.Host = "letterboxd.com";
-
-  # KVR: Setup X-Forwarded-For header
-  if (req.restarts == 0) {
-    if (!req.http.Fastly-FF) {
-      set req.http.Fastly-Temp-XFF = client.ip;
-    } else {
-      set req.http.Fastly-Temp-XFF = req.http.X-Forwarded-For;
-    }
-  }
+  # set req.http.Host = "letterboxd.com";
   
   unset req.http.X-Supermodel-Generated-CSRF;
   unset req.http.X-Supermodel-Dont-Modify;
@@ -148,19 +66,7 @@ sub vcl_recv {
     set req.http.X-Supermodel-Debug = "YES";
   }
 
-  # KVR: Normalize Accept-Encoding header, as it will be in the Vary headers
-  # See http://www.slideshare.net/Fastly/fastly-inaugural-nyc-varnish-meetup
-  if (req.http.Accept-Encoding) {
-    if (req.http.User-Agent ~ "MSIE 6") {
-      unset req.http.Accept-Encoding;
-    } else if (req.http.Accept-Encoding ~ "gzip") {
-      set req.http.Accept-Encoding = "gzip";
-    } else if (req.http.Accept-Encoding ~ "deflate") {
-      set req.http.Accept-Encoding = "deflate";
-    } else {
-      unset req.http.Accept-Encoding;
-    }
-  }
+  call req_normalize_accept_encoding;
 
   # KVR: Geolocation (always add headers, and then remove if not allowed later)
   set req.http.X-Supermodel-Country-Code = geoip.country_code("" + client.ip);
@@ -216,7 +122,7 @@ sub vcl_recv {
   # KVR: Allow stale pages to be served if necessary
   # set req.grace = 5m;
 
-  call normalize_req_url;
+  call req_normalize_url;
 
   # KVR: Remove all cookies for our static paths, and proceed to lookup
   if (req.http.X-Supermodel-Path ~ "^/static/" || req.http.X-Supermodel-Path ~ "^/assets/" || req.http.X-Supermodel-Path ~ "^/_maint/") {
@@ -414,18 +320,7 @@ sub vcl_recv {
   return(hash);
 }
 
-sub normalize_req_url {
-    # Strip out Google Analytics campaign variables. They are only needed by the javascript running on the page
-    # utm_source, utm_medium, utm_campaign, gclid, ...
-    if(req.url ~ "(\?|&)(gclid|cx|ie|cof|siteurl|zanpid|origin|utm_[a-z]+|mr:[A-z]+)=") {
-        set req.url = regsuball(req.url, "(\?|&)(gclid|cx|ie|cof|siteurl|zanpid|origin|utm_[a-z]+|mr:[A-z]+)=[^&]+", "\1");
-    }
 
-    # Tidy up the query string
-    set req.url = regsuball(req.url, "&&+", "");
-    set req.url = regsub(req.url, "\?&", "?");
-    set req.url = regsub(req.url, "\?$", "");
-}
 
 sub allow_esi {
   set req.http.X-Supermodel-ESI = "YES";
