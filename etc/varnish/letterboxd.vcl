@@ -66,16 +66,17 @@ sub vcl_init {
 }
 
 sub vcl_recv {
-  if (req.method == "BAN") {
+  if (req.method == "DELETE" && req.url ~ "^/surrogate-key/") {
     # Same ACL check as above:
     if (!client.ip ~ purge) {
       return(synth(403, "Not allowed."));
     }
 
-    if (req.url == "ALL") {
+    set req.http.X-Supermodel-Purge-Key = urlcode.decode(regsub(req.url, "^/surrogate-key/", ""));
+    if (req.http.X-Supermodel-Purge-Key == "ALL") {
       ban("obj.http.Surrogate-Key != NEVER_PURGE_ME");
     } else {
-      ban("obj.http.Surrogate-Key ~ (^|\s)" + req.url + "($|\s)");
+      ban("obj.http.Surrogate-Key ~ (^|\s)" + req.http.X-Supermodel-Purge-Key + "($|\s)");
     }
     #ban("obj.http.Surrogate-Key ~ " + req.url);
 
