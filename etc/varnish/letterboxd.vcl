@@ -498,7 +498,7 @@ sub vcl_backend_response {
   # however we want to cache them for this user.
   if (bereq.http.X-Letterboxd-Cookie-Set ~ "(^|\s)USER(\s|$)") {
     if (beresp.http.Cache-Control ~ "private") {
-      set beresp.http.Cache-Control = regsuball(beresp.http.Cache-Control, "(^|,)\s*private\s*(,|$)", "");
+      set beresp.http.Cache-Control = regsuball(beresp.http.Cache-Control, "(^|,)\s*private\s*", "");
       if (beresp.http.Cache-Control == "") {
         unset beresp.http.Cache-Control;
       }
