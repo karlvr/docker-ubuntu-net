@@ -469,20 +469,7 @@ sub vcl_backend_response {
 }
 
 sub vcl_hit {
-  set req.http.X-Supermodel-Cache-Type = "HIT";
-
-# #--FASTLY HIT START
-
-# # we cannot reach obj.ttl and obj.grace in vcl_deliver, save them when we can in vcl_hit
-#   set req.http.Fastly-Tmp-Obj-TTL = obj.ttl;
-#   set req.http.Fastly-Tmp-Obj-Grace = obj.grace;
-
-#   {
-#     set req.http.Fastly-Cachetype = "HIT";
-
-    
-#   }
-# #--FASTLY HIT END
+  set req.http.X-Cache-Type = "HIT";
 
   if (obj.ttl >= 0s) {
       // A pure unadultered hit, deliver it
@@ -498,63 +485,13 @@ sub vcl_hit {
 }
 
 sub vcl_miss {
-#--FASTLY MISS START
-
-# this is not a hit after all, clean up these set in vcl_hit
-  # unset req.http.Fastly-Tmp-Obj-TTL;
-  # unset req.http.Fastly-Tmp-Obj-Grace;
-
-  # {
-  #   if (req.http.Fastly-Check-SHA1) {
-  #      return(synth(550, "Doesnt exist"));
-  #   }
-    
-#--FASTLY BEREQ START
-    # {
-    #   if (req.http.Fastly-Original-Cookie) {
-    #     set bereq.http.Cookie = req.http.Fastly-Original-Cookie;
-    #   }
-      
-    #   if (req.http.Fastly-Original-URL) {
-    #     set bereq.url = req.http.Fastly-Original-URL;
-    #   }
-    #   {
-    #     if (req.http.Fastly-FF) {
-    #       set bereq.http.Fastly-Client = "1";
-    #     }
-    #   }
-    #   {
-    #     # do not send this to the backend
-    #     unset bereq.http.Fastly-Original-Cookie;
-    #     unset bereq.http.Fastly-Original-URL;
-    #     unset bereq.http.Fastly-Vary-String;
-    #     unset bereq.http.X-Varnish-Client;
-    #   }
-    #   if (req.http.Fastly-Temp-XFF) {
-    #      if (req.http.Fastly-Temp-XFF == "") {
-    #        unset bereq.http.X-Forwarded-For;
-    #      } else {
-    #        set bereq.http.X-Forwarded-For = req.http.Fastly-Temp-XFF;
-    #      }
-    #      # unset bereq.http.Fastly-Temp-XFF;
-    #   }
-    # }
-#--FASTLY BEREQ STOP
-
-
- #;
-
-    set req.http.Fastly-Cachetype = "MISS";
-
-    
-  # }
-#--FASTLY MISS STOP
+  set req.http.X-Cache-Type = "MISS";
 
   return(fetch);
 }
 
 sub vcl_deliver {
-  # Handle forbidden responses where we have stripped the user details
+  /* 401 support - handle forbidden responses where we have stripped the user details */
   if (resp.status == 401 && req.http.X-Supermodel-User-Stripped == "YES") {
     # Restart the request, not stripping the user details this time.
     set req.http.X-Supermodel-Allow-User = "YES";
@@ -562,83 +499,29 @@ sub vcl_deliver {
     return(restart);
   }
 
-#--FASTLY DELIVER START
+  /* Info */
+  header.append(resp.http.X-Served-By, server.identity);
 
-# record the journey of the object, expose it only if req.http.Fastly-Debug.
-  if (req.http.Fastly-Debug || req.http.Fastly-FF) {
-    # set resp.http.Fastly-Debug-Path = "(D " + server.identity + " " + now + ") "
-    #    if(resp.http.Fastly-Debug-Path, resp.http.Fastly-Debug-Path, "");
-
-    # set resp.http.Fastly-Debug-TTL = if(obj.hits > 0, "(H ", "(M ")
-    #    server.identity
-    #    if(req.http.Fastly-Tmp-Obj-TTL && req.http.Fastly-Tmp-Obj-Grace, " " req.http.Fastly-Tmp-Obj-TTL " " req.http.Fastly-Tmp-Obj-Grace " ", " - - ")
-    #    if(resp.http.Age, resp.http.Age, "-")
-    #    ") "
-    #    if(resp.http.Fastly-Debug-TTL, resp.http.Fastly-Debug-TTL, "");
-  } else {
-    unset resp.http.Fastly-Debug-Path;
-    unset resp.http.Fastly-Debug-TTL;
+  if (req.http.X-Cache-Type) {
+    header.append(resp.http.X-Cache, req.http.X-Cache-Type);
   }
 
-  # add or append X-Served-By/X-Cache(-Hits)
-  {
+  header.append(resp.http.X-Cache-Hits, "" + obj.hits);
 
-    if(!resp.http.X-Served-By) {
-      set resp.http.X-Served-By  = server.identity;
-    } else {
-      set resp.http.X-Served-By = resp.http.X-Served-By + ", " + server.identity;
-    }
-
-    # set resp.http.X-Cache = if(resp.http.X-Cache, resp.http.X-Cache ", ","") if(fastly_info.state ~ "HIT($|-)", "HIT", "MISS");
-
-    if(!resp.http.X-Cache-Hits) {
-      set resp.http.X-Cache-Hits = obj.hits;
-    } else {
-      set resp.http.X-Cache-Hits = resp.http.X-Cache-Hits + ", " + obj.hits;
-    }
-
-  }
-
-  # if (req.http.X-Timer) {
-  #   set resp.http.X-Timer = req.http.X-Timer ",VE" time.elapsed.msec;
-  # }
-
-  # VARY FIXUP
-  {
-    # remove before sending to client
-    set resp.http.Vary = regsub(resp.http.Vary, "Fastly-Vary-String, ", "");
-    if (resp.http.Vary ~ "^\s*$") {
-      unset resp.http.Vary;
-    }
-  }
   unset resp.http.X-Varnish;
 
+  # # Pop the surrogate headers into the request object so we can reference them later
+  # set req.http.Surrogate-Key = resp.http.Surrogate-Key;
+  # set req.http.Surrogate-Control = resp.http.Surrogate-Control;
 
-  # Pop the surrogate headers into the request object so we can reference them later
-  set req.http.Surrogate-Key = resp.http.Surrogate-Key;
-  set req.http.Surrogate-Control = resp.http.Surrogate-Control;
-
-  # If we are not forwarding or debugging unset the surrogate headers so they are not present in the response
-  if (!req.http.Fastly-FF && !req.http.Fastly-Debug) {
-    unset resp.http.Surrogate-Key;
-    unset resp.http.Surrogate-Control;
-  }
-
-  if(resp.status == 550) {
-    return(deliver);
-  }
-  
-
-  #default response conditions
-    
-      
-                  
-
-  
-#--FASTLY DELIVER END
+  # # If we are not forwarding or debugging unset the surrogate headers so they are not present in the response
+  # if (!req.http.Fastly-FF && !req.http.Fastly-Debug) {
+  #   unset resp.http.Surrogate-Key;
+  #   unset resp.http.Surrogate-Control;
+  # }
 
   if (resp.http.X-Supermodel-Removed-Set-Cookie) {
-    call my_csrf;
+    call deliver_add_csrf;
   }
 
   if (client.ip ~ debug) {
@@ -818,74 +701,12 @@ sub vcl_backend_error {
     synthetic({""});
     return (deliver);
   }
-
-#--FASTLY ERROR START
-
-  # if (beresp.status == 801) {
-  #    set beresp.status = 301;
-  #    set beresp.reason = "Moved Permanently";
-  #    set beresp.http.Location = "https://" + req.http.host + req.url;
-  #    synthetic({""});
-  #    return (deliver);
-  # }
-
-      
-                  
-  # if (req.http.Fastly-Restart-On-Error) {
-  #   if (beresp.status == 503 && req.restarts == 0) {
-  #     return(retry);
-  #   }
-  # }
-
-  # {
-  #   if (obj.status == 550) {
-  #     return(deliver);
-  #   }
-  # }
-#--FASTLY ERROR END
 }
 
 sub vcl_pass {
-#--FASTLY PASS START
-  {
-    
-#--FASTLY BEREQ START
-    {
-      # if (req.http.Fastly-Original-Cookie) {
-      #   set bereq.http.Cookie = req.http.Fastly-Original-Cookie;
-      # }
-      
-      # if (req.http.Fastly-Original-URL) {
-      #   set bereq.url = req.http.Fastly-Original-URL;
-      # }
-      # {
-      #   if (req.http.Fastly-FF) {
-      #     set bereq.http.Fastly-Client = "1";
-      #   }
-      # }
-      # {
-      #   # do not send this to the backend
-      #   unset bereq.http.Fastly-Original-Cookie;
-      #   unset bereq.http.Fastly-Original-URL;
-      #   unset bereq.http.Fastly-Vary-String;
-      #   unset bereq.http.X-Varnish-Client;
-      # }
-      # if (req.http.Fastly-Temp-XFF) {
-      #    if (req.http.Fastly-Temp-XFF == "") {
-      #      unset bereq.http.X-Forwarded-For;
-      #    } else {
-      #      set bereq.http.X-Forwarded-For = req.http.Fastly-Temp-XFF;
-      #    }
-      #    # unset bereq.http.Fastly-Temp-XFF;
-      # }
-    }
-#--FASTLY BEREQ STOP
+  set req.http.X-Cache-Type = "PASS";
 
-
- #;
-    set req.http.Fastly-Cachetype = "PASS";
-  }
-#--FASTLY PASS STOP
+  return (fetch);
 }
 
 sub vcl_backend_fetch {
@@ -912,12 +733,12 @@ sub my_tidy_up_bereq {
   # unset bereq.http.X-Letterboxd-Cookie-Set;
 }
 
-sub my_csrf {
+sub deliver_add_csrf {
   # KVR: Add CSRF cookie if the user didn't supply it. This is because we don't allow the server to set it (as it would be cached). The
   # server will accept the Fastly generated cookie from the client and use it client-side to set the CSRF fields in forms, and then to validate
   # posted forms.
   if (req.http.X-Supermodel-Generated-CSRF) {
-    set resp.http.Set-Cookie = "com.xk72.webparts.csrf=" + req.http.X-Supermodel-Generated-CSRF + "; Path=/; HttpOnly; Domain=" + req.http.X-Supermodel-Cookie-Domain;
+    header.append(resp.http.Set-Cookie, "com.xk72.webparts.csrf=" + req.http.X-Supermodel-Generated-CSRF + "; Path=/; HttpOnly; Domain=" + req.http.X-Supermodel-Cookie-Domain);
     if (client.ip ~ debug) {
       set resp.http.X-Supermodel-Generated-CSRF = "YES";
     }
