@@ -11,7 +11,7 @@ import header;
 
 # Backends
 
-# backend F_charles {
+# backend LB_charles {
 #     .first_byte_timeout = 60s;
 #     .connect_timeout = 5s;
 #     .max_connections = 200;
@@ -20,7 +20,7 @@ import header;
 #     .host = "127.0.0.1";
 # }
 
-backend F_app1 {
+backend LB_app1 {
     .first_byte_timeout = 60s;
     .connect_timeout = 5s;
     .max_connections = 200;
@@ -39,7 +39,7 @@ backend F_app1 {
     }
 }
 
-backend F_app2 {
+backend LB_app1 {
     .first_byte_timeout = 60s;
     .connect_timeout = 5s;
     .max_connections = 200;
@@ -72,9 +72,9 @@ acl purge {
 
 sub vcl_init {
   new bar = directors.round_robin();
-  bar.add_backend(F_app1);
-  bar.add_backend(F_app2);
-  # bar.add_backend(F_charles);
+  bar.add_backend(LB_app1);
+  bar.add_backend(LB_app1);
+  # bar.add_backend(LB_charles);
 }
 
 sub vcl_recv {
