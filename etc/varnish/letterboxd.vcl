@@ -245,7 +245,7 @@ sub vcl_recv {
   unset req.http.X-Letterboxd-Filter-Stripped;
 
   set req.http.X-Letterboxd-Cookie-Set = "";
-  set req.http.X-Supermodel-Cookies-Allowed = "X-this-string-cant-be-empty-or-no-filtering-occurs";
+  set req.http.X-Supermodel-Cookies-Allowed = "X-none"; # The list of cookies to filter can't be empty, or no filtering occurs
   if (req.http.X-Supermodel-Path ~ "(\?|&)esiAllowUser=true(&|$)" || req.http.X-Supermodel-Allow-User == "YES") {
     set req.http.X-Letterboxd-Cookie-Set = req.http.X-Letterboxd-Cookie-Set + "USER ";
     set req.http.X-Supermodel-Cookies-Allowed = req.http.X-Supermodel-Cookies-Allowed + ",com.xk72.webparts.csrf,com.xk72.webparts.user,com.xk72.webparts.user.CURRENT";
