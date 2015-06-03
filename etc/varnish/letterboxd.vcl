@@ -48,7 +48,7 @@ sub vcl_recv {
   }
    
   /* Backend server */
-  set req.backend_hint = bar.backend();
+  set req.backend_hint = vdir.backend();
   
 # if (req.http.Host == "varnish.letterboxd.com" && req.url ~ "^/robots.txt") {
 #   return(synth(902, "No robots"));
