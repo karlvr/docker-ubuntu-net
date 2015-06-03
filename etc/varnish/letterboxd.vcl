@@ -336,7 +336,7 @@ sub vcl_backend_response {
   }
   
   if (bereq.retries > 0 ) {
-    set beresp.http.Fastly-Restarts = bereq.retries;
+    set beresp.http.X-Retries = bereq.retries;
   }
 
   set beresp.http.X-Backend = beresp.backend.name;
@@ -359,7 +359,6 @@ sub vcl_backend_response {
 
   # KVR: If the response is private then we don't remove cookies, we just pass it through.
   if (beresp.http.Cache-Control ~ "private") {
-    set bereq.http.Fastly-Cachetype = "PRIVATE";
     set beresp.uncacheable = true;
     set beresp.ttl = 0s;
     return (deliver);
@@ -371,7 +370,6 @@ sub vcl_backend_response {
   set beresp.http.X-Supermodel-Removed-Set-Cookie = "YES";
 
   if (beresp.http.Set-Cookie) {
-    set bereq.http.Fastly-Cachetype = "SETCOOKIE";
     set beresp.uncacheable = true;
     set beresp.ttl = 0s;
     return (deliver);
@@ -390,7 +388,6 @@ sub vcl_backend_response {
   }
 
   if (beresp.status == 500 || beresp.status == 503) {
-    set bereq.http.Fastly-Cachetype = "ERROR";
     set beresp.ttl = 1s;
     set beresp.grace = 5s;
     return (deliver);
@@ -398,7 +395,6 @@ sub vcl_backend_response {
 
   # KVR: Don't cache 404s etc for very long, as these are possibly new pages being created
   if (beresp.status == 404) {
-    set bereq.http.Fastly-Cachetype = "NOTFOUND";
     set beresp.ttl = 10s;
     set beresp.grace = 30s;
     return (deliver);
