@@ -312,19 +312,10 @@ sub vcl_recv {
 
 sub vcl_pipe {
   set req.http.X-Cache-Type = "PIPE";
-
-  # By default Connection: close is set on all piped requests, to stop
-  # connection reuse from sending future requests directly to the
-  # (potentially) wrong backend. If you do want this to happen, you can undo
-  # it here.
-  # unset bereq.http.connection;
-  return (pipe);
 }
 
 sub vcl_pass {
   set req.http.X-Cache-Type = "PASS";
-
-  return (fetch);
 }
 
 sub vcl_hash {
@@ -363,24 +354,10 @@ sub vcl_hash {
 
 sub vcl_hit {
   set req.http.X-Cache-Type = "HIT";
-
-  if (obj.ttl >= 0s) {
-      // A pure unadultered hit, deliver it
-      return (deliver);
-  }
-  if (obj.ttl + obj.grace > 0s) {
-      // Object is in grace, deliver it
-      // Automatically triggers a background fetch
-      return (deliver);
-  }
-  // fetch & deliver once we get the result
-  return (fetch);
 }
 
 sub vcl_miss {
   set req.http.X-Cache-Type = "MISS";
-
-  return(fetch);
 }
 
 sub vcl_deliver {
@@ -430,8 +407,6 @@ sub vcl_deliver {
 
     unset resp.http.X-Supermodel-Removed-Set-Cookie;
   }
-
-  return(deliver);
 }
 
 sub vcl_synth {
@@ -451,8 +426,6 @@ sub vcl_synth {
 Disallow: /"});
     return (deliver);
   }
-
-  return (deliver);
 }
 
 #####################################################################################
@@ -461,7 +434,6 @@ Disallow: /"});
 
 sub vcl_backend_fetch {
   call fetch_tidy_bereq;
-  return (fetch);
 }
 
 sub vcl_backend_response {
