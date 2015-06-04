@@ -142,6 +142,9 @@ sub vcl_recv {
   } else if (req.http.X-Supermodel-File ~ "^/(sign-in/?)?$") {
     set req.http.X-Letterboxd-Cacheable = "YES";
     set req.http.X-Letterboxd-Cacheable-Reason = "Sign-in page";
+  } else if (req.http.X-Supermodel-File ~ "^/api/") {
+    set req.http.X-Letterboxd-Cacheable = "NO";
+    set req.http.X-Letterboxd-Cacheable-Reason = "API call";
   } else if (req.http.X-Supermodel-File ~ "^/errors/") {
     set req.http.X-Letterboxd-Cacheable = "YES";
     set req.http.X-Letterboxd-Cacheable-Reason = "Error page";
