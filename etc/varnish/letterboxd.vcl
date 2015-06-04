@@ -166,7 +166,7 @@ sub vcl_recv {
   } else if (req.http.X-Supermodel-File ~ "^/(pro)/") {
     set req.http.X-Letterboxd-Cacheable = "YES";
     set req.http.X-Letterboxd-Cacheable-Reason = "Purchase page";
-  } else if (req.http.X-Supermodel-File ~ "^/(films|lists|people)/$") {
+  } else if (req.http.X-Supermodel-File ~ "^/(films|lists|people)/?$") {
     set req.http.X-Letterboxd-Cacheable = "YES";
     set req.http.X-Letterboxd-Cacheable-Reason = "Cacheable Main page";
   } else if (req.http.X-Supermodel-File ~ "^/(reviews|reviewers|patrons|tags|charts|create-account|imdb|tmdb)/") {
