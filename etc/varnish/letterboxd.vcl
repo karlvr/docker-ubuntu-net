@@ -40,7 +40,7 @@ sub vcl_recv {
     if (req.http.X-Supermodel-Purge-Key == "ALL") {
       ban("obj.http.Surrogate-Key != NEVER_PURGE_ME");
     } else {
-      ban("obj.http.Surrogate-Key ~ (^|\s)" + req.http.X-Supermodel-Purge-Key + "($|\s)");
+      ban("obj.http.Surrogate-Key ~ \b" + req.http.X-Supermodel-Purge-Key + "\b");
     }
 
     # Throw a synthetic page so the request won't go to the backend.
