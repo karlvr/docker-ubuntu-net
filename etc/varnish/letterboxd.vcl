@@ -136,7 +136,7 @@ sub vcl_recv {
 
   # Blacklist / Whitelist
   # the X-Letterboxd-Cacheable-Reason is only for debugging purposes, although both headers are passed through so we can check server-side for a faulty regex or missing case.
-  if (req.http.X-Supermodel-File ~ "^/(add/)?$") {
+  if (req.http.X-Supermodel-File ~ "^/(add/?)?$") {
     set req.http.X-Letterboxd-Cacheable = "YES";
     set req.http.X-Letterboxd-Cacheable-Reason = "Homepage";
   } else if (req.http.X-Supermodel-File ~ "^/errors/") {
