@@ -181,7 +181,7 @@ sub vcl_recv {
   } else if (req.http.X-Supermodel-File ~ "^/film/[^/]+/?$") {
     set req.http.X-Letterboxd-Cacheable = "YES";
     set req.http.X-Letterboxd-Cacheable-Reason = "A film page";
-  } else if (req.http.X-Supermodel-File ~ "^/film/[^/]+/(review|genres|crew|studios)/$") {
+  } else if (req.http.X-Supermodel-File ~ "^/film/[^/]+/(trailer/review|genres|crew|studios)/?$") {
     set req.http.X-Letterboxd-Cacheable = "YES";
     set req.http.X-Letterboxd-Cacheable-Reason = "A film page aspect";
   } else if (req.http.X-Supermodel-File ~ "^/film/[^/]+/(image-125|image-150)/$") {
