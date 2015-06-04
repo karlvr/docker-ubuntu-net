@@ -237,7 +237,7 @@ sub vcl_recv {
     set req.http.X-Letterboxd-Cacheable-Reason = "Viewing page";
   }
 
-  unset req.http.X-Supermodel-File;
+  #unset req.http.X-Supermodel-File; # Don't unset this - it's used for DEBUG logging in the CacheabilityCheckFilter
   
   if (!req.http.X-Letterboxd-Cacheable) {
     set req.http.X-Letterboxd-Cacheable = "UNKNOWN";
