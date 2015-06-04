@@ -193,6 +193,9 @@ sub vcl_recv {
   } else if (req.http.X-Supermodel-File ~ "^/film/[^/]+/embed/") {
     set req.http.X-Letterboxd-Cacheable = "NO";
     set req.http.X-Letterboxd-Cacheable-Reason = "A film embed";
+  } else if (req.http.X-Supermodel-File ~ "^/film/[^/]+/(mark-as-watched|mark-as-not-watched|rate|report|add-to-watchlist|remove-from-watchlist)/") {
+    set req.http.X-Letterboxd-Cacheable = "NO";
+    set req.http.X-Letterboxd-Cacheable-Reason = "A film action";
   } else if (req.http.X-Supermodel-File ~ "^(/[a-zA-Z0-9_]{2,15}(/friends)?)?/film/[^/]+/(lists|fans|likes|watches|views|reviews|ratings|activity)/") {
     set req.http.X-Letterboxd-Cacheable = "NO";
     set req.http.X-Letterboxd-Cacheable-Reason = "Film subpage";
@@ -214,6 +217,9 @@ sub vcl_recv {
   } else if (req.http.X-Supermodel-File ~ "^/[a-zA-Z0-9_]{2,15}/?$") {
     set req.http.X-Letterboxd-Cacheable = "YES";
     set req.http.X-Letterboxd-Cacheable-Reason = "A person's profile page";
+  } else if (req.http.X-Supermodel-File ~ "^/[a-zA-Z0-9_]{2,15}/(follow|unfollow|block|unblock|report)/?") {
+    set req.http.X-Letterboxd-Cacheable = "NO";
+    set req.http.X-Letterboxd-Cacheable-Reason = "Action on a person";
   } else if (req.http.X-Supermodel-File ~ "^(/[a-zA-Z0-9_]{2,15}(/friends)?)?/tag/") {
     set req.http.X-Letterboxd-Cacheable = "NO";
     set req.http.X-Letterboxd-Cacheable-Reason = "A tag page";
