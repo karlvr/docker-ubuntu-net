@@ -178,7 +178,7 @@ sub vcl_recv {
   } else if (req.http.X-Supermodel-File ~ "^/list/new/") {
     set req.http.X-Letterboxd-Cacheable = "NO";
     set req.http.X-Letterboxd-Cacheable-Reason = "New list";
-  } else if (req.http.X-Supermodel-File ~ "^/film/[^/]+/$") {
+  } else if (req.http.X-Supermodel-File ~ "^/film/[^/]+/?$") {
     set req.http.X-Letterboxd-Cacheable = "YES";
     set req.http.X-Letterboxd-Cacheable-Reason = "A film page";
   } else if (req.http.X-Supermodel-File ~ "^/film/[^/]+/(review|genres|crew|studios)/$") {
