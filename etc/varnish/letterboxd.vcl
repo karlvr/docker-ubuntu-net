@@ -172,7 +172,7 @@ sub vcl_recv {
   } else if (req.http.X-Supermodel-File ~ "^/(reviews|reviewers|patrons|tags|charts|create-account|imdb|tmdb)/") {
     set req.http.X-Letterboxd-Cacheable = "NO";
     set req.http.X-Letterboxd-Cacheable-Reason = "Main page";
-  } else if (req.http.X-Supermodel-File ~ "^/(year-in-review|2012|2013|2014)/") {
+  } else if (req.http.X-Supermodel-File ~ "^/(year-in-review|2012|2013|2014|2015|2016|2017|2018|2019|2020)/?$") {
     set req.http.X-Letterboxd-Cacheable = "NO";
     set req.http.X-Letterboxd-Cacheable-Reason = "Year in review page";
   } else if (req.http.X-Supermodel-File ~ "^/list/new/") {
