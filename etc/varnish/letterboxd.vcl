@@ -190,6 +190,9 @@ sub vcl_recv {
   } else if (req.http.X-Supermodel-File ~ "^/film/[^/]+/(image-125|image-150)/?$") {
     set req.http.X-Letterboxd-Cacheable = "YES";
     set req.http.X-Letterboxd-Cacheable-Reason = "A film poster container";
+  } else if (req.http.X-Supermodel-File ~ "^/film/[^/]+/embed/") {
+    set req.http.X-Letterboxd-Cacheable = "NO";
+    set req.http.X-Letterboxd-Cacheable-Reason = "A film embed";
   } else if (req.http.X-Supermodel-File ~ "^(/[a-zA-Z0-9_]{2,15}(/friends)?)?/film/[^/]+/(lists|fans|likes|watches|views|reviews|ratings|activity)/") {
     set req.http.X-Letterboxd-Cacheable = "NO";
     set req.http.X-Letterboxd-Cacheable-Reason = "Film subpage";
