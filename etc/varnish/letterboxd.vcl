@@ -40,7 +40,7 @@ sub vcl_recv {
     if (req.http.X-Supermodel-Purge-Key == "ALL") {
       ban("obj.http.Surrogate-Key != NEVER_PURGE_ME");
     } else {
-      ban("obj.http.Surrogate-Key ~ (^|\s)" + req.http.X-Supermodel-Purge-Key + "($|\s)");
+      ban("obj.http.Surrogate-Key ~ \b" + req.http.X-Supermodel-Purge-Key + "\b");
     }
 
     # Throw a synthetic page so the request won't go to the backend.
@@ -401,7 +401,6 @@ sub vcl_deliver {
     set resp.http.X-Debug-Cookie = req.http.Cookie;
     set resp.http.X-Debug-Path = req.http.X-Supermodel-Path;
     set resp.http.X-Debug-Dont-Modify = req.http.X-Supermodel-Dont-Modify;
-    set resp.http.X-Debug-URL = req.url;
 
     #LB
     set resp.http.X-Debug-Cookie-Set = req.http.X-Letterboxd-Cookie-Set;
