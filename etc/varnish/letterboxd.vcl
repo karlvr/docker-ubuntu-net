@@ -226,7 +226,7 @@ sub vcl_recv {
   } else if (req.http.X-Supermodel-File ~ "^/[a-zA-Z0-9_]{2,15}/films/") {
     set req.http.X-Letterboxd-Cacheable = "YES";
     set req.http.X-Letterboxd-Cacheable-Reason = "Personal films page";
-  } else if (req.http.X-Supermodel-File ~ "^/[a-zA-Z0-9_]{2,15}/(settings|watchlist|lists|activity)/") {
+  } else if (req.http.X-Supermodel-File ~ "^/[a-zA-Z0-9_]{2,15}/(settings|watchlist|lists|activity)/?") {
     set req.http.X-Letterboxd-Cacheable = "YES";
     set req.http.X-Letterboxd-Cacheable-Reason = "Personal settings, watchlist, lists page, or activity";
   } else if (req.http.X-Supermodel-File ~ "^/[a-zA-Z0-9_]{2,15}/film/[^/]+/(\d+/)?/(likes)/") {
