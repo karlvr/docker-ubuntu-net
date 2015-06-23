@@ -15,6 +15,7 @@ JkMount /* balancer
 
 RewriteEngine On
 RewriteCond %{HTTP_HOST} !^(lb[0-9]+\.|)letterboxd\.com
+RewriteCond %{HTTP_HOST} !^varnish\.letterboxd\.com$
 RewriteCond %{HTTP_HOST} !^$
 RewriteRule ^/(.*)$ http://letterboxd.com/$1 [R=301,NE]
 

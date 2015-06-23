@@ -1,10 +1,12 @@
 #!/bin/bash
 #
-# iTunes update script
+# Generic tool script
 
-TMPDIRNAME=letterboxd-itunes
+TMPDIRNAME=letterboxd-tools
 
 . $(dirname $0)/../libexec/tool-base.sh
+
+TOOL_CLASS="$1"
 
 JAVA_OPTS="-Xmx4096M"
 #JAVA_OPTS="$JAVA_OPTS -XX:+UseConcMarkSweepGC -XX:+CMSIncrementalMode"
@@ -15,4 +17,4 @@ fi
 #JAVA_OPTS="$JAVA_OPTS -Dletterboxd.useCachedNetflixData=true"
 #JAVA_OPTS="$JAVA_OPTS -Dletterboxd.useExistingSearchIndex=true"
 
-java $JAVA_OPTS com.letterboxd.tools.itunes.ITunesUpdate $*
+java $JAVA_OPTS "$TOOL_CLASS" $*
