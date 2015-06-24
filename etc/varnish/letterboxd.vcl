@@ -202,6 +202,9 @@ sub vcl_recv {
   } else if (req.http.X-Supermodel-File ~ "^/esi/") {
     set req.http.X-Letterboxd-Cacheable = "YES";
     set req.http.X-Letterboxd-Cacheable-Reason = "ESI";
+  } else if (req.http.X-Supermodel-File ~ "^/csi/") {
+    set req.http.X-Letterboxd-Cacheable = "YES";
+    set req.http.X-Letterboxd-Cacheable-Reason = "CSI";
   } else if (req.http.X-Supermodel-File ~ "^/(search|welcome|pro|contact)/?$") {
     set req.http.X-Letterboxd-Cacheable = "YES";
     set req.http.X-Letterboxd-Cacheable-Reason = "search page, welcome page, pro page, contact page";
