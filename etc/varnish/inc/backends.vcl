@@ -1,5 +1,7 @@
 # Backends
 
+import directors;
+
 backend LB_app1 {
     .first_byte_timeout = 60s;
     .connect_timeout = 5s;
