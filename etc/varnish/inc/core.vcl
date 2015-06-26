@@ -297,11 +297,10 @@ sub vcl_recv {
        request is not an ESI, as ESI responses can't set headers.
        As we may contain ESIs, which don't see any of the headers the parent request sets, we need to ensure
        that the ESIs will generate the same CSRF. So we use properties of the request that the ESI will
-       have the same as the parent request. Note that req.xid is identical for parent requests and ESI requests.
-       This surprised the ESI tech support person. If that changes then this approach will break.
+       have the same as the parent request.
      */
     #set req.http.X-Supermodel-Generated-CSRF = randomstr(20, "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789");
-    set req.http.X-Supermodel-Generated-CSRF = regsub(digest.hash_sha1(client.ip + req.xid), "^(.{20}).*$", "\1");
+    set req.http.X-Supermodel-Generated-CSRF = regsub(digest.hash_sha1("" + client.ip + ":" + std.port(client.ip) + ":" + req.http.User-Agent), "^(.{20}).*$", "\1");
 
     /* Add it to the request cookie. Note that we may strip it below, but it's not there to not strip if appropriate.
        So we will _always_ have a CSRF cookie.
