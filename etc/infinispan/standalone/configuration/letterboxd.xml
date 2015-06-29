@@ -17,7 +17,6 @@
         <extension module="org.jboss.as.threads"/>
         <extension module="org.jboss.as.transactions"/>
         <extension module="org.wildfly.extension.io"/>
-        <extension module="org.wildfly.extension.undertow"/>
     </extensions>
     <management>
         <security-realms>
@@ -119,23 +118,23 @@
         <subsystem xmlns="urn:jboss:domain:deployment-scanner:2.0">
             <deployment-scanner path="deployments" relative-to="jboss.server.base.dir" scan-interval="5000" runtime-failure-causes-rollback="${jboss.deployment.scanner.rollback.on.failure:false}"/>
         </subsystem>
-        <subsystem xmlns="urn:infinispan:server:endpoint:7.0">
-            <hotrod-connector socket-binding="hotrod" cache-container="clustered2">
+        <subsystem xmlns="urn:infinispan:server:endpoint:7.2">
+            <hotrod-connector socket-binding="hotrod" cache-container="clustered73">
                 <topology-state-transfer lazy-retrieval="false" lock-timeout="1000" replication-timeout="5000"/>
             </hotrod-connector>
             <!--
-            <memcached-connector socket-binding="memcached" cache-container="clustered2"/>
-            <rest-connector virtual-server="default-host" cache-container="clustered2" security-domain="other" auth-method="BASIC"/>
-            <websocket-connector socket-binding="websocket" cache-container="clustered2"/>
+            <memcached-connector socket-binding="memcached" cache-container="clustered73"/>
+            <rest-connector socket-binding="rest" cache-container="clustered73" security-domain="other" auth-method="BASIC"/>
+            <websocket-connector socket-binding="websocket" cache-container="clustered73"/>
             -->
         </subsystem>
         <subsystem xmlns="urn:jboss:domain:datasources:2.0">
             <datasources/>
         </subsystem>
-        <subsystem xmlns="urn:infinispan:server:core:7.1" default-cache-container="clustered2">
-            <cache-container name="clustered2" default-cache="letterboxd.metadata" statistics="true">
+        <subsystem xmlns="urn:infinispan:server:core:7.2" default-cache-container="clustered73">
+            <cache-container name="clustered73" default-cache="letterboxd.metadata" statistics="true">
                 <transport executor="infinispan-transport" lock-timeout="60000"/>
-                <distributed-cache name="letterboxd.metadata" mode="ASYNC" segments="20" owners="2" remote-timeout="30000" start="EAGER">
+                <distributed-cache name="letterboxd.metadata" mode="SYNC" segments="20" owners="2" remote-timeout="30000" start="EAGER">
                     <locking acquire-timeout="30000" concurrency-level="1000" striping="false"/>
                     <transaction mode="NONE"/>
                     <state-transfer await-initial-transfer="true" timeout="240000" />
@@ -304,22 +303,6 @@
             </core-environment>
             <recovery-environment socket-binding="txn-recovery-environment" status-socket-binding="txn-status-manager"/>
         </subsystem>
-        <subsystem xmlns="urn:jboss:domain:undertow:1.1">
-            <buffer-cache name="default"/>
-            <server name="default-server">
-                <http-listener name="default" socket-binding="http"/>
-                <host name="default-host" alias="localhost">
-                    <filter-ref name="server-header"/>
-                    <filter-ref name="x-powered-by-header"/>
-                </host>
-            </server>
-            <servlet-container name="default"/>
-            <handlers/>
-            <filters>
-                <response-header name="server-header" header-name="Server" header-value="WildFly/8"/>
-                <response-header name="x-powered-by-header" header-name="X-Powered-By" header-value="Undertow/1"/>
-            </filters>
-        </subsystem>
     </profile>
     <interfaces>
         <interface name="management">
@@ -333,10 +316,7 @@
     <socket-binding-group name="standard-sockets" default-interface="public" port-offset="${jboss.socket.binding.port-offset:0}">
         <socket-binding name="management-http" interface="management" port="${jboss.management.http.port:9990}"/>
         <socket-binding name="management-https" interface="management" port="${jboss.management.https.port:9993}"/>
-        <socket-binding name="ajp" port="${jboss.ajp.port:8009}"/>
         <socket-binding name="hotrod" port="11222"/>
-        <socket-binding name="http" port="${jboss.http.port:8080}"/>
-        <socket-binding name="https" port="${jboss.https.port:8443}"/>
         <socket-binding name="jgroups-mping" port="0" multicast-address="${jboss.default.multicast.address:234.99.54.14}" multicast-port="45700"/>
         <socket-binding name="jgroups-tcp" port="7600"/>
         <socket-binding name="jgroups-tcp-fd" port="57600"/>
@@ -344,6 +324,7 @@
         <socket-binding name="jgroups-udp-fd" port="54200"/>
         <socket-binding name="memcached" port="11211"/>
         <socket-binding name="modcluster" port="0" multicast-address="224.0.1.115" multicast-port="23364"/>
+        <socket-binding name="rest" port="8080"/>
         <socket-binding name="txn-recovery-environment" port="4712"/>
         <socket-binding name="txn-status-manager" port="4713"/>
         <socket-binding name="websocket" port="8181"/>
