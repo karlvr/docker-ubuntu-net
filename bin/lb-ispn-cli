@@ -3,7 +3,7 @@
 # Infinispan server CLI
 
 echo "To connect to the Letterboxd metadata cache:"
-echo "container clustered2"
+echo "container clustered73"
 echo "cache 'letterboxd.metadata'"
 echo
 echo "To view cache stats type:"
