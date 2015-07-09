@@ -551,13 +551,16 @@ sub vcl_backend_response {
     if (bereq.http.X-Supermodel-Debug == "YES") {
       set beresp.http.X-Supermodel-TTL-From-Backend = "YES";
     }
+    if (beresp.ttl > 1h) {
+      set beresp.ttl = 1h;
+    }
   } else if (bereq.http.X-Supermodel-Development == "YES") {
     # In development use a reduced TTL
-    set beresp.ttl = 4h; #4h
+    set beresp.ttl = 1h; #4h
     set beresp.grace = 15m; #15m
   } else {
     # apply the default ttl
-    set beresp.ttl = 4h; #30d; #4h
+    set beresp.ttl = 1h; #30d; #4h
     set beresp.grace = 15m;
   }
 
