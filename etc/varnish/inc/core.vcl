@@ -42,6 +42,15 @@ sub vcl_recv {
     # Throw a synthetic page so the request won't go to the backend.
     return(synth(200, "Ban added"));
   }
+
+  /* Purge */
+  if (req.method == "PURGE") {
+    if (!client.ip ~ purge) {
+      return(synth(405, "Not allowed."));
+    }
+
+    return(purge);
+  }
    
   /* Backend server */
   set req.backend_hint = vdir.backend();
