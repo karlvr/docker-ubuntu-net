@@ -216,6 +216,9 @@ sub vcl_recv {
   } else if (req.http.X-Supermodel-File ~ "^/search/.*$") {
     set req.http.X-Letterboxd-Cacheable = "YES";
     set req.http.X-Letterboxd-Cacheable-Reason = "search results page";
+  } else if (req.http.X-Supermodel-File ~ "^/legal/community-policy/") {
+    set req.http.X-Letterboxd-Cacheable = "NO";
+    set req.http.X-Letterboxd-Cacheable-Reason = "Community policy page - needs user to show the Ungag UI.";
   } else if (req.http.X-Supermodel-File ~ "^/(about|legal|api-coming-soon|purpose)/") {
     set req.http.X-Letterboxd-Cacheable = "YES";
     set req.http.X-Letterboxd-Cacheable-Reason = "editorial page/section";
