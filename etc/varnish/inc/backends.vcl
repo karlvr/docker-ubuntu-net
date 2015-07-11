@@ -11,8 +11,8 @@ backend LB_app1 {
     .host = "199.195.199.60";
     .host_header = "letterboxd.com";
     .probe = {
-        .url = "/";
-        .timeout = 1s;
+        .url = "/s/health";
+        .timeout = 3s;
         .interval = 5s;
         .window = 5;
         .threshold = 3;
@@ -28,8 +28,8 @@ backend LB_app2 {
     .host = "199.195.199.116";
     .host_header = "letterboxd.com";
     .probe = {
-        .url = "/";
-        .timeout = 1s;
+        .url = "/s/health";
+        .timeout = 3s;
         .interval = 5s;
         .window = 5;
         .threshold = 3;
