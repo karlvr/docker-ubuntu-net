@@ -42,6 +42,15 @@ sub vcl_recv {
     # Throw a synthetic page so the request won't go to the backend.
     return(synth(200, "Ban added"));
   }
+
+  /* Purge */
+  if (req.method == "PURGE") {
+    if (!client.ip ~ purge) {
+      return(synth(405, "Not allowed."));
+    }
+
+    return(purge);
+  }
    
   /* Backend server */
   set req.backend_hint = vdir.backend();
@@ -207,6 +216,9 @@ sub vcl_recv {
   } else if (req.http.X-Supermodel-File ~ "^/search/.*$") {
     set req.http.X-Letterboxd-Cacheable = "YES";
     set req.http.X-Letterboxd-Cacheable-Reason = "search results page";
+  } else if (req.http.X-Supermodel-File ~ "^/legal/community-policy/") {
+    set req.http.X-Letterboxd-Cacheable = "NO";
+    set req.http.X-Letterboxd-Cacheable-Reason = "Community policy page - needs user to show the Ungag UI.";
   } else if (req.http.X-Supermodel-File ~ "^/(about|legal|api-coming-soon|purpose)/") {
     set req.http.X-Letterboxd-Cacheable = "YES";
     set req.http.X-Letterboxd-Cacheable-Reason = "editorial page/section";
@@ -551,13 +563,16 @@ sub vcl_backend_response {
     if (bereq.http.X-Supermodel-Debug == "YES") {
       set beresp.http.X-Supermodel-TTL-From-Backend = "YES";
     }
+    if (beresp.ttl > 1h) {
+      set beresp.ttl = 1h;
+    }
   } else if (bereq.http.X-Supermodel-Development == "YES") {
     # In development use a reduced TTL
-    set beresp.ttl = 4h; #4h
+    set beresp.ttl = 1h; #4h
     set beresp.grace = 15m; #15m
   } else {
     # apply the default ttl
-    set beresp.ttl = 4h; #30d; #4h
+    set beresp.ttl = 1h; #30d; #4h
     set beresp.grace = 15m;
   }
 
