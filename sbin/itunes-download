@@ -7,16 +7,25 @@ EXTRACT_DIR=/tmp/letterboxd-itunes/extract
 mkdir -p "$DOWNLOAD_DIR"
 mkdir -p "$EXTRACT_DIR"
 
-/usr/bin/lftp https://feeds.itunes.apple.com/ -u epfuser19e9c30,375891146ac1d9786d91296e81b9be53 \
-	-e "mirror --continue --delete --include-glob itunes*.tbz --include-glob pricing*.tbz --no-recursion /feeds/epf/v3/full/current/ $DOWNLOAD_DIR ; exit"
+USER=epfuser19e9c30
+PASSWORD=375891146ac1d9786d91296e81b9be53
+URL=https://feeds.itunes.apple.com/feeds/epf/v3/full/current
 
-if [ $? != 0 ]; then
-	echo "*** Failed to download iTunes EPF"
-	exit 1
-fi
+wget -r --no-host-directories --no-directories --no-parent --timestamping \
+	--accept "itunes*.tbz,pricing*.tbz" -P "$DOWNLOAD_DIR" \
+	--user "$USER" --password "$PASSWORD" $URL
 
-ITUNES_TBZ=`ls "$DOWNLOAD_DIR"/itunes*.tbz | head -n 1`
-PRICING_TBZ=`ls "$DOWNLOAD_DIR"/pricing*.tbz | head -n 1`
+# Find the latest files
+ITUNES_TBZ=$(ls -r "$DOWNLOAD_DIR"/itunes*.tbz | head -n 1)
+PRICING_TBZ=$(ls -r "$DOWNLOAD_DIR"/pricing*.tbz | head -n 1)
+
+# Delete old files
+for i in $(ls -r "$DOWNLOAD_DIR"/itunes*.tbz | tail -n +2); do
+	rm -f "$i"
+done
+for i in $(ls -r "$DOWNLOAD_DIR"/pricing*.tbz | tail -n +2); do
+	rm -f "$i"
+done
 
 ITUNES_FOLDER=${ITUNES_TBZ##*/}
 ITUNES_FOLDER=${ITUNES_FOLDER%.*}
