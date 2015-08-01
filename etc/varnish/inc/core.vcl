@@ -27,9 +27,7 @@ acl purge {
 
 sub vcl_recv {
   /* Block www.letterboxd.net */
-  if (req.http.X-Forwarded-For && 
-    (req.http.Referer == "http://letterboxd.com" || req.http.Cookie ~ "mycustomtrackid") &&
-    req.url !~ "^/esi/") {
+  if (req.http.X-Forwarded-For && req.http.Cookie ~ "mycustomtrackid" && req.url !~ "^/esi/") {
     //set req.http.X-Redirect = "http://letterboxd.com" + req.url;
     //return(synth(750, "Redirect"));
     set req.url = "/errors/exception";
