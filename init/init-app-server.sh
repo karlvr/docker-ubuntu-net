@@ -32,10 +32,10 @@ sed -e "s/<Engine name=\"Catalina\" defaultHost=\"localhost\">/<Engine name=\"Ca
 # Asset configuration
 case $(hostname) in
 	app1)
-		STATIC_URLS="http://elephant.cf1.letterboxd.com http://psycho.cf1.letterboxd.com http://predator.cf1.letterboxd.com http://memento.cf1.letterboxd.com"
+		STATIC_URLS="http://elephant.s1.ltrbxd.com http://psycho.s1.ltrbxd.com http://predator.s1.ltrbxd.com http://memento.s1.ltrbxd.com"
 		;;
 	app2)
-		STATIC_URLS="http://bullitt.cf2.letterboxd.com http://up.cf2.letterboxd.com http://brick.cf2.letterboxd.com http://moon.cf2.letterboxd.com"
+		STATIC_URLS="http://bullitt.s2.ltrbxd.com http://up.s2.ltrbxd.com http://brick.s2.ltrbxd.com http://moon.s2.ltrbxd.com"
 		;;
 	*)
 		echo "Unsupported hostname: $(hostname)"

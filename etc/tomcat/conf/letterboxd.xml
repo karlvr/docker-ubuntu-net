@@ -1,9 +1,9 @@
 <Context docBase="/srv/www/letterboxd/web" sessionCookieDomain="letterboxd.com">
   <Environment name="com/xk72/webparts/assets/urls" override="true"
-    type="java.lang.String" value="http://skyfall.cf.letterboxd.com
-    http://zardoz.cf.letterboxd.com
-    http://oblivion.cf.letterboxd.com
-    http://primer.cf.letterboxd.com" />
+    type="java.lang.String" value="http://skyfall.a.ltrbxd.com
+    http://zardoz.a.ltrbxd.com
+    http://oblivion.a.ltrbxd.com
+    http://primer.a.ltrbxd.com" />
 
   <Environment name="com/cactuslab/supermodel/Application/static-urls" override="true"
     type="java.lang.String" value="STATIC_URLS" />
