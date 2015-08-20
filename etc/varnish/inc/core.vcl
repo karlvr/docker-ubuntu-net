@@ -26,6 +26,13 @@ acl purge {
 }
 
 sub vcl_recv {
+  /* Block www.letterboxd.net */
+  if (req.http.X-Forwarded-For && req.http.Cookie ~ "mycustomtrackid" && req.url !~ "^/esi/") {
+    //set req.http.X-Redirect = "http://letterboxd.com" + req.url;
+    //return(synth(750, "Redirect"));
+    set req.url = "/errors/exception";
+  }
+
   /* Bans */
   if (req.method == "DELETE" && req.url ~ "^/surrogate-key/") {
     if (!client.ip ~ purge) {
@@ -452,6 +459,10 @@ sub vcl_synth {
     set resp.http.Content-type = "text/plain";
     synthetic({"User-agent: *
 Disallow: /"});
+    return (deliver);
+  } else if (resp.status == 750) {
+    set resp.status = 302;
+    set resp.http.Location = req.http.X-Redirect;
     return (deliver);
   }
 }

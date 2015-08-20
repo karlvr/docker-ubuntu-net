@@ -1,0 +1,1 @@
+*/10 * * * * pganalyze /usr/bin/pganalyze-collector --cron
