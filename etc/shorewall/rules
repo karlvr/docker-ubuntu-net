@@ -42,14 +42,16 @@ ACCEPT     vlan     $FW     tcp     20001
 ACCEPT     $FW     vlan     tcp     20001
 
 ## Infinispan vlan access
-ACCEPT		vlan	$FW 	tcp		7600:7700 # jgroups
-ACCEPT		$FW 	vlan	tcp		7600:7700 # jgroups
-ACCEPT		vlan	$FW 	tcp		57600:57700 # jgroups
-ACCEPT		$FW		vlan 	tcp		57600:57700 # jgroups
+ACCEPT		vlan	$FW 	tcp		7600:7700 # jgroups TCP
+ACCEPT		$FW 	vlan	tcp		7600:7700 # jgroups TCP
+ACCEPT		vlan	$FW 	tcp		57600:57700 # jgroups FD
+ACCEPT		$FW		vlan 	tcp		57600:57700 # jgroups FD
 ACCEPT		vlan 	$FW		tcp		11222	# hotrod
 ACCEPT		$FW 	vlan	tcp		11222	# hotrod
-ACCEPT		vlan	$FW 	tcp		7800:7830	# embedded jgroups
-ACCEPT 		$FW 	vlan	tcp		7800:7830	# embedded jgroups
+ACCEPT		vlan	$FW 	tcp		7800:7830	# embedded jgroups TCP
+ACCEPT 		$FW 	vlan	tcp		7800:7830	# embedded jgroups TCP
+ACCEPT		vlan	$FW 	tcp		57800:57900 # embedded jgroups FD
+ACCEPT		$FW		vlan 	tcp		57800:57900 # embedded jgroups FD
 
 ## General vlan access
 SSH(ACCEPT)     vlan     $FW
