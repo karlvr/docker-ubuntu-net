@@ -64,7 +64,7 @@ ACCEPT     vlan     $FW     icmp
 ACCEPT     $FW     vlan     icmp
 
 # Orac monitoring
-ACCEPT          net:120.138.27.32        $FW     tcp     5671
+ACCEPT          $FW             net:120.138.27.32     tcp     5671
 
 # Outgoing
 DNS(ACCEPT)     $FW             net
