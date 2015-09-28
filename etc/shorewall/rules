@@ -63,9 +63,8 @@ Ping(ACCEPT)     $FW     vlan
 ACCEPT     vlan     $FW     icmp
 ACCEPT     $FW     vlan     icmp
 
-# Orac nagios and munin servers
-ACCEPT          net:120.138.27.32        $FW     tcp     5666
-ACCEPT          net:120.138.27.32        $FW     tcp     munin
+# Orac monitoring
+ACCEPT          net:120.138.27.32        $FW     tcp     5671
 
 # Outgoing
 DNS(ACCEPT)     $FW             net
