@@ -48,11 +48,7 @@ sub vcl_recv {
       /* xkey */
       if (req.http.X-Supermodel-Purge) {
         set req.http.X-Supermodel-Purge-Count = xkey.purge(req.http.X-Supermodel-Purge);
-        if (req.http.X-Supermodel-Purge-Count != "0") {
-          return(synth(200, "Purged " + req.http.X-Supermodel-Purge-Count));
-        } else {
-          return(synth(404, "Key not found"));
-        }
+        return(synth(200, "Purged " + req.http.X-Supermodel-Purge-Count));
       } else {
         return(synth(400, "No keys"));
       }
