@@ -588,7 +588,7 @@ sub vcl_backend_response {
     set beresp.grace = 15m; #15m
   } else {
     # apply the default ttl
-    set beresp.ttl = 30d; #4h
+    set beresp.ttl = 1d; #4h
     set beresp.grace = 15m;
   }
 
