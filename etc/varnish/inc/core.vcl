@@ -7,6 +7,7 @@ import urlcode;
 import header;
 import std;
 import xkey;
+import var;
 
 include "inc/functions.vcl";
 include "inc/custom.vcl";
@@ -34,26 +35,34 @@ sub vcl_recv {
     set req.url = "/errors/exception";
   }
 
-  /* xkey */
-  if (req.method == "DELETE" && req.url ~ "^/surrogate-key/") {
+  /* Purging */
+  if (req.method == "DELETE" && req.url ~ "^/varnish/") {
     if (!client.ip ~ purge) {
       return(synth(403, "Not allowed."));
     }
 
-    if (req.http.X-Supermodel-Purge) {
-      set req.http.X-Supermodel-Purge-Count = xkey.purge(req.http.X-Supermodel-Purge);
-      if (req.http.X-Supermodel-Purge-Count != "0") {
-        return (synth(200, "Purged " + req.http.X-Supermodel-Purge-Count));
+    if (req.url == "/varnish/generation") {
+      var.global_set("generation", "" + (std.integer(var.global_get("generation"), 0) + 1));
+      return (synth(200, "Updated generation to " + var.global_get("generation")));
+    } else if (req.url == "/varnish/key") {
+      /* xkey */
+      if (req.http.X-Supermodel-Purge) {
+        set req.http.X-Supermodel-Purge-Count = xkey.purge(req.http.X-Supermodel-Purge);
+        if (req.http.X-Supermodel-Purge-Count != "0") {
+          return(synth(200, "Purged " + req.http.X-Supermodel-Purge-Count));
+        } else {
+          return(synth(404, "Key not found"));
+        }
       } else {
-        return (synth(404, "Key not found"));
+        return(synth(400, "No keys"));
       }
-    } else {
-      return (synth(400, "No keys"));
     }
-  }
-
-  /* Purge */
-  if (req.method == "PURGE") {
+  } else if (req.method == "GET" && req.url == "/varnish/generation") {
+    if (!client.ip ~ purge) {
+      return(synth(403, "Not allowed."));
+    }
+    return (synth(200, "Generation: " + var.global_get("generation")));
+  } else if (req.method == "PURGE") {
     if (!client.ip ~ purge) {
       return(synth(405, "Not allowed."));
     }
@@ -387,7 +396,7 @@ sub vcl_hash {
     /* Posters don't participate in a purge all - when posters need purging, update the version below */
     hash_data("poster.v1");
   } else {
-    hash_data("#####GENERATION#####");
+    hash_data("#####GENERATION." + var.global_get("generation") + "#####");
   }
   return (lookup);
 }
