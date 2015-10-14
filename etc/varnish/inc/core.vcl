@@ -6,6 +6,8 @@ import cookie;
 import urlcode;
 import header;
 import std;
+import xkey;
+import var;
 
 include "inc/functions.vcl";
 include "inc/custom.vcl";
@@ -33,25 +35,30 @@ sub vcl_recv {
     set req.url = "/errors/exception";
   }
 
-  /* Bans */
-  if (req.method == "DELETE" && req.url ~ "^/surrogate-key/") {
+  /* Purging */
+  if (req.method == "DELETE" && req.url ~ "^/varnish/") {
     if (!client.ip ~ purge) {
       return(synth(403, "Not allowed."));
     }
 
-    set req.http.X-Supermodel-Purge-Key = urlcode.decode(regsub(req.url, "^/surrogate-key/", ""));
-    if (req.http.X-Supermodel-Purge-Key == "ALL") {
-      ban("obj.http.Surrogate-Key != NEVER_PURGE_ME");
-    } else {
-      ban("obj.http.Surrogate-Key ~ (^|\s)" + req.http.X-Supermodel-Purge-Key + "($|\s)");
+    if (req.url == "/varnish/generation") {
+      var.global_set("generation", "" + (std.integer(var.global_get("generation"), 0) + 1));
+      return (synth(200, "Updated generation to " + var.global_get("generation")));
+    } else if (req.url == "/varnish/key") {
+      /* xkey */
+      if (req.http.X-Supermodel-Purge) {
+        set req.http.X-Supermodel-Purge-Count = xkey.purge(req.http.X-Supermodel-Purge);
+        return(synth(200, "Purged " + req.http.X-Supermodel-Purge-Count));
+      } else {
+        return(synth(400, "No keys"));
+      }
     }
-
-    # Throw a synthetic page so the request won't go to the backend.
-    return(synth(200, "Ban added"));
-  }
-
-  /* Purge */
-  if (req.method == "PURGE") {
+  } else if (req.method == "GET" && req.url == "/varnish/generation") {
+    if (!client.ip ~ purge) {
+      return(synth(403, "Not allowed."));
+    }
+    return (synth(200, "Generation: " + var.global_get("generation")));
+  } else if (req.method == "PURGE") {
     if (!client.ip ~ purge) {
       return(synth(405, "Not allowed."));
     }
@@ -163,6 +170,9 @@ sub vcl_recv {
   } else if (req.http.X-Supermodel-File ~ "^/favicon.(ico|png)") {
     set req.http.X-Letterboxd-Cacheable = "YES";
     set req.http.X-Letterboxd-Cacheable-Reason = "Favicon";
+  } else if (req.http.X-Supermodel-File ~ "^/apple-touch-icon.png") {
+    set req.http.X-Letterboxd-Cacheable = "YES";
+    set req.http.X-Letterboxd-Cacheable-Reason = "Apple Touch Icon";
   } else if (req.http.X-Supermodel-File ~ "^/admin/") {
     set req.http.X-Letterboxd-Cacheable = "NO";
     set req.http.X-Letterboxd-Cacheable-Reason = "Admin page";
@@ -385,7 +395,7 @@ sub vcl_hash {
     /* Posters don't participate in a purge all - when posters need purging, update the version below */
     hash_data("poster.v1");
   } else {
-    hash_data("#####GENERATION#####");
+    hash_data("#####GENERATION." + var.global_get("generation") + "#####");
   }
   return (lookup);
 }
@@ -417,10 +427,6 @@ sub vcl_deliver {
   header.append(resp.http.X-Cache-Hits, "" + obj.hits);
 
   unset resp.http.X-Varnish;
-
-  # Pop the surrogate headers into the request object so we can reference them later
-  set req.http.Surrogate-Key = resp.http.Surrogate-Key;
-  set req.http.Surrogate-Control = resp.http.Surrogate-Control;
 
   if (resp.http.X-Supermodel-Removed-Set-Cookie) {
     call deliver_add_csrf;
@@ -476,6 +482,11 @@ sub vcl_backend_fetch {
 }
 
 sub vcl_backend_response {
+  # xkey
+  # Letterboxd outputs Surrogate-Key headers, we need those values in the xkey header
+  # for the xkey vmod
+  header.copy(beresp.http.Surrogate-Key, beresp.http.xkey);
+
   # Check if we've indicated that this response is uncacheable
   if (bereq.http.X-Supermodel-Uncacheable == "YES") {
     set beresp.uncacheable = true;
@@ -574,16 +585,13 @@ sub vcl_backend_response {
     if (bereq.http.X-Supermodel-Debug == "YES") {
       set beresp.http.X-Supermodel-TTL-From-Backend = "YES";
     }
-    if (beresp.ttl > 1h) {
-      set beresp.ttl = 1h;
-    }
   } else if (bereq.http.X-Supermodel-Development == "YES") {
     # In development use a reduced TTL
-    set beresp.ttl = 1h; #4h
+    set beresp.ttl = 4h; #4h
     set beresp.grace = 15m; #15m
   } else {
     # apply the default ttl
-    set beresp.ttl = 1h; #30d; #4h
+    set beresp.ttl = 1d; #4h
     set beresp.grace = 15m;
   }
 

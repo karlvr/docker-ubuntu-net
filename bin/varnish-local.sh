@@ -16,7 +16,7 @@ CONFIG=$VCL_DIR/${ROOT_VCL}.vcl
 VARNISH_ADMIN_PORT=2000
 VARNISH_PORT=8081
 
-sudo $VARNISHD -F -n "$INSTANCE_NAME" -f "$CONFIG" -s malloc,1G -T 127.0.0.1:$VARNISH_ADMIN_PORT -a 0.0.0.0:$VARNISH_PORT -u "$USER" \
+sudo $VARNISHD -F -n "$INSTANCE_NAME" -f "$CONFIG" -s malloc,1G -T 127.0.0.1:$VARNISH_ADMIN_PORT -a 0.0.0.0:$VARNISH_PORT \
 	-p feature=+esi_disable_xml_check \
 	-p feature=+esi_ignore_other_elements \
 	-p workspace_client=256K \
