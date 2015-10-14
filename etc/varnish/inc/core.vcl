@@ -6,6 +6,7 @@ import cookie;
 import urlcode;
 import header;
 import std;
+import xkey;
 
 include "inc/functions.vcl";
 include "inc/custom.vcl";
@@ -33,21 +34,22 @@ sub vcl_recv {
     set req.url = "/errors/exception";
   }
 
-  /* Bans */
+  /* xkey */
   if (req.method == "DELETE" && req.url ~ "^/surrogate-key/") {
     if (!client.ip ~ purge) {
       return(synth(403, "Not allowed."));
     }
 
-    set req.http.X-Supermodel-Purge-Key = urlcode.decode(regsub(req.url, "^/surrogate-key/", ""));
-    if (req.http.X-Supermodel-Purge-Key == "ALL") {
-      ban("obj.http.Surrogate-Key != NEVER_PURGE_ME");
+    if (req.http.X-Supermodel-Purge) {
+      set req.http.X-Supermodel-Purge-Count = xkey.purge(req.http.X-Supermodel-Purge);
+      if (req.http.X-Supermodel-Purge-Count != "0") {
+        return (synth(200, "Purged " + req.http.X-Supermodel-Purge-Count));
+      } else {
+        return (synth(404, "Key not found"));
+      }
     } else {
-      ban("obj.http.Surrogate-Key ~ (^|\s)" + req.http.X-Supermodel-Purge-Key + "($|\s)");
+      return (synth(400, "No keys"));
     }
-
-    # Throw a synthetic page so the request won't go to the backend.
-    return(synth(200, "Ban added"));
   }
 
   /* Purge */
@@ -418,10 +420,6 @@ sub vcl_deliver {
 
   unset resp.http.X-Varnish;
 
-  # Pop the surrogate headers into the request object so we can reference them later
-  set req.http.Surrogate-Key = resp.http.Surrogate-Key;
-  set req.http.Surrogate-Control = resp.http.Surrogate-Control;
-
   if (resp.http.X-Supermodel-Removed-Set-Cookie) {
     call deliver_add_csrf;
   }
@@ -476,6 +474,11 @@ sub vcl_backend_fetch {
 }
 
 sub vcl_backend_response {
+  # xkey
+  # Letterboxd outputs Surrogate-Key headers, we need those values in the xkey header
+  # for the xkey vmod
+  header.copy(beresp.http.Surrogate-Key, beresp.http.xkey);
+
   # Check if we've indicated that this response is uncacheable
   if (bereq.http.X-Supermodel-Uncacheable == "YES") {
     set beresp.uncacheable = true;
