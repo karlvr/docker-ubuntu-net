@@ -52,10 +52,25 @@ else
 	DIVISOR=1000000
 fi
 
-while true
+trap cancel INT
+
+RUNNING=1
+
+cancel() {
+	echo "Stopping..."
+	RUNNING=0
+}
+
+while [ $RUNNING -eq 1 ]
 do
 	OUTPUT_FILE="$OUTPUT/$PID-$(($(date +$DATE_PATTERN)/$DIVISOR)).txt"
 	jstack "$PID" > "$OUTPUT_FILE"
 	echo -n "."
 	sleep "$SLEEP"
 done
+
+# Analyze
+LIBEXEC=$(dirname $0)/../libexec
+PARSER_JAR="$LIBEXEC"/parser/parser.jar
+
+java -jar "$PARSER_JAR" "$OUTPUT"
