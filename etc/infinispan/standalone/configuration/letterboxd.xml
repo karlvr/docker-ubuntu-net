@@ -128,6 +128,12 @@
                     <state-transfer await-initial-transfer="true" timeout="240000" />
                     <expiration lifespan="86400000" />
                 </distributed-cache>
+                <distributed-cache name="letterboxd.nonce" mode="SYNC" segments="20" owners="2" remote-timeout="30000" start="EAGER">
+                    <locking acquire-timeout="30000" concurrency-level="1000" striping="false"/>
+                    <transaction mode="NONE"/>
+                    <state-transfer await-initial-transfer="true" timeout="240000" />
+                    <expiration lifespan="1800000" />
+                </distributed-cache>
             </cache-container>
             <cache-container name="security"/>
         </subsystem>
