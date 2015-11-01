@@ -9,6 +9,7 @@
 vcl 4.0;
 
 import directors;
+import saintmode;
 
 backend LB_karl_charles {
     .first_byte_timeout = 60s;
@@ -27,8 +28,10 @@ backend LB_karl_charles {
 }
 
 sub vcl_init {
-  new vdir = directors.round_robin();
-  vdir.add_backend(LB_karl_charles);
+    new sm0 = saintmode.saintmode(LB_karl_charles, 10);
+
+    new vdir = directors.round_robin();
+    vdir.add_backend(sm0.backend());
 }
 
 include "inc/core.vcl";

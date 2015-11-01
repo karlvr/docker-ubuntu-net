@@ -482,6 +482,11 @@ sub vcl_backend_fetch {
 }
 
 sub vcl_backend_response {
+  if ((beresp.status == 500 || beresp.status == 503) && bereq.retries < 1 && (bereq.method == "GET" || bereq.method == "HEAD")) {
+    saintmode.blacklist(20s);
+    return(retry);
+  }
+
   # xkey
   # Letterboxd outputs Surrogate-Key headers, we need those values in the xkey header
   # for the xkey vmod
@@ -505,10 +510,6 @@ sub vcl_backend_response {
       # synthetic("ESI content failed");
       return(deliver);
     }
-  }
-
-  if ((beresp.status == 500 || beresp.status == 503) && bereq.retries < 1 && (bereq.method == "GET" || bereq.method == "HEAD")) {
-    return(retry);
   }
   
   if (bereq.retries > 0 ) {
