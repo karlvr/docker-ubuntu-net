@@ -109,7 +109,7 @@ sub vcl_recv {
   }
 
   /* Remove context paths on dev */
-  if (req.http.host ~ "dev\.cactuslab\.com$" || req.http.host ~ "letterboxd-dev\.com(\:\d+)?$") {
+  if (req.http.host ~ "dev\.cactuslab\.com$" || req.http.host ~ "office\.cactuslab\.com" || req.http.host ~ "letterboxd-dev\.com(\:\d+)?$") {
     set req.http.X-Supermodel-Path = regsub(req.url, "^/letterboxd/", "/");
     set req.http.X-Supermodel-Development = "YES";
   } else {
@@ -167,12 +167,15 @@ sub vcl_recv {
   } else if (req.http.X-Supermodel-File ~ "^/errors/") {
     set req.http.X-Letterboxd-Cacheable = "YES";
     set req.http.X-Letterboxd-Cacheable-Reason = "Error page";
-  } else if (req.http.X-Supermodel-File ~ "^/favicon.(ico|png)") {
+  } else if (req.http.X-Supermodel-File ~ "^/favicon\.(ico|png)") {
     set req.http.X-Letterboxd-Cacheable = "YES";
     set req.http.X-Letterboxd-Cacheable-Reason = "Favicon";
-  } else if (req.http.X-Supermodel-File ~ "^/apple-touch-icon.png") {
+  } else if (req.http.X-Supermodel-File ~ "^/apple-touch-icon\.png") {
     set req.http.X-Letterboxd-Cacheable = "YES";
     set req.http.X-Letterboxd-Cacheable-Reason = "Apple Touch Icon";
+  } else if (req.http.X-Supermodel-File ~ "^/robots\.txt") {
+    set req.http.X-Letterboxd-Cacheable = "YES";
+    set req.http.X-Letterboxd-Cacheable-Reason = "robots.txt";
   } else if (req.http.X-Supermodel-File ~ "^/admin/") {
     set req.http.X-Letterboxd-Cacheable = "NO";
     set req.http.X-Letterboxd-Cacheable-Reason = "Admin page";
@@ -482,6 +485,11 @@ sub vcl_backend_fetch {
 }
 
 sub vcl_backend_response {
+  if ((beresp.status == 500 || beresp.status == 503) && bereq.retries < 1 && (bereq.method == "GET" || bereq.method == "HEAD")) {
+    saintmode.blacklist(20s);
+    return(retry);
+  }
+
   # xkey
   # Letterboxd outputs Surrogate-Key headers, we need those values in the xkey header
   # for the xkey vmod
@@ -505,10 +513,6 @@ sub vcl_backend_response {
       # synthetic("ESI content failed");
       return(deliver);
     }
-  }
-
-  if ((beresp.status == 500 || beresp.status == 503) && bereq.retries < 1 && (bereq.method == "GET" || bereq.method == "HEAD")) {
-    return(retry);
   }
   
   if (bereq.retries > 0 ) {
