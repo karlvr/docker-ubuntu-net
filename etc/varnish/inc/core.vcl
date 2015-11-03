@@ -473,6 +473,9 @@ Disallow: /"});
     set resp.status = 302;
     set resp.http.Location = req.http.X-Redirect;
     return (deliver);
+  } else {
+    synthetic(resp.reason);
+    return (deliver);
   }
 }
 
