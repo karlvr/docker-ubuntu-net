@@ -76,7 +76,7 @@ sub vcl_recv {
   # KVR: force the Host so we can test with Varnish on any URL
   # set req.http.Host = "letterboxd.com";
 
-  if (client.ip ~ debug) {
+  if (std.ip(req.http.X-Real-IP,client.ip) ~ debug) {
     set req.http.X-Supermodel-Debug = "YES";
   } else {
     unset req.http.X-Supermodel-Debug;
@@ -435,7 +435,7 @@ sub vcl_deliver {
     call deliver_add_csrf;
   }
 
-  if (client.ip ~ debug) {
+  if (req.http.X-Supermodel-Debug) {
     set resp.http.X-Debug-Cookie = req.http.Cookie;
     set resp.http.X-Debug-Path = req.http.X-Supermodel-Path;
     set resp.http.X-Debug-Dont-Modify = req.http.X-Supermodel-Dont-Modify;
