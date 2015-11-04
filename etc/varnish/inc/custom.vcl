@@ -6,6 +6,7 @@ sub fetch_tidy_bereq {
   unset bereq.http.X-Supermodel-Original-Cookie;
   unset bereq.http.X-Supermodel-Cookie-Domain;
   unset bereq.http.X-Supermodel-Allow-User;
+  unset bereq.http.X-Real-IP;
 }
 
 sub deliver_add_csrf {

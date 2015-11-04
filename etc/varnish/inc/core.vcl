@@ -27,6 +27,11 @@ acl purge {
   "123.100.90.137";
 }
 
+acl upstream_proxy {
+  "127.0.0.1";
+  "10.0.0.0"/8;
+}
+
 sub vcl_recv {
   /* Block www.letterboxd.net */
   if (req.http.X-Forwarded-For && req.http.Cookie ~ "mycustomtrackid" && req.url !~ "^/esi/") {
@@ -35,9 +40,26 @@ sub vcl_recv {
     set req.url = "/errors/exception";
   }
 
+  /* Determine client ip (support upstream proxy) */
+  if (!client.ip ~ upstream_proxy) {
+    unset req.http.X-Real-IP;
+    # No need to unset X-Forwarded-For here as we replace it
+    # unset req.http.X-Forwarded-For;
+    unset req.http.X-Forwarded-Proto;
+    unset req.http.X-Forwarded-Port;
+  }
+
+  /* X-Forwarded-For */
+  /* Supermodel only supports single-IP X-Forwarded-For - by default Varnish adds to whatever X-Forwarded-For it got so we can't trust it */
+  if (req.http.X-Real-IP) {
+    set req.http.X-Forwarded-For = req.http.X-Real-IP;
+  } else {
+    set req.http.X-Forwarded-For = client.ip;
+  }
+
   /* Purging */
   if (req.method == "DELETE" && req.url ~ "^/varnish/") {
-    if (!client.ip ~ purge) {
+    if (!std.ip(req.http.X-Real-IP,client.ip) ~ purge) {
       return(synth(403, "Not allowed."));
     }
 
@@ -54,12 +76,12 @@ sub vcl_recv {
       }
     }
   } else if (req.method == "GET" && req.url == "/varnish/generation") {
-    if (!client.ip ~ purge) {
+    if (!std.ip(req.http.X-Real-IP,client.ip) ~ purge) {
       return(synth(403, "Not allowed."));
     }
     return (synth(200, "Generation: " + var.global_get("generation")));
   } else if (req.method == "PURGE") {
-    if (!client.ip ~ purge) {
+    if (!std.ip(req.http.X-Real-IP,client.ip) ~ purge) {
       return(synth(405, "Not allowed."));
     }
 
@@ -372,6 +394,7 @@ sub vcl_pass {
 sub vcl_hash {
   hash_data(req.url);
   hash_data(req.http.host);
+  hash_data(req.http.X-Forwarded-Proto);
 
 #   No need to cache logged-in / logged-out separately, since the back end doesn't get this information anymore,
 #   so it won't produce different templates.
