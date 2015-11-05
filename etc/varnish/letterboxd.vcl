@@ -11,7 +11,7 @@ backend LB_app1 {
     .max_connections = 200;
     .between_bytes_timeout = 60s;
     .port = "80";
-    .host = "199.195.199.60";
+    .host = "10.100.1.1";
     .host_header = "letterboxd.com";
     .probe = {
         .url = "/s/health";
@@ -28,7 +28,7 @@ backend LB_app2 {
     .max_connections = 200;
     .between_bytes_timeout = 60s;
     .port = "80";
-    .host = "199.195.199.116";
+    .host = "10.100.1.2";
     .host_header = "letterboxd.com";
     .probe = {
         .url = "/s/health";
