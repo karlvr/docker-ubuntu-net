@@ -12,7 +12,7 @@ backend LB_app1 {
     .between_bytes_timeout = 60s;
     .port = "80";
     .host = "10.100.1.1";
-    .host_header = "letterboxd.com";
+#    .host_header = "letterboxd.com";
     .probe = {
         .url = "/s/health";
         .timeout = 3s;
@@ -29,7 +29,7 @@ backend LB_app2 {
     .between_bytes_timeout = 60s;
     .port = "80";
     .host = "10.100.1.2";
-    .host_header = "letterboxd.com";
+#    .host_header = "letterboxd.com";
     .probe = {
         .url = "/s/health";
         .timeout = 3s;
