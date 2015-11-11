@@ -27,6 +27,11 @@ acl purge {
   "123.100.90.137";
 }
 
+acl upstream_proxy {
+  "127.0.0.1";
+  "10.0.0.0"/8;
+}
+
 sub vcl_recv {
   /* Block www.letterboxd.net */
   if (req.http.X-Forwarded-For && req.http.Cookie ~ "mycustomtrackid" && req.url !~ "^/esi/") {
@@ -35,9 +40,26 @@ sub vcl_recv {
     set req.url = "/errors/exception";
   }
 
+  /* Determine client ip (support upstream proxy) */
+  if (!client.ip ~ upstream_proxy) {
+    unset req.http.X-Real-IP;
+    # No need to unset X-Forwarded-For here as we replace it
+    # unset req.http.X-Forwarded-For;
+    unset req.http.X-Forwarded-Proto;
+    unset req.http.X-Forwarded-Port;
+  }
+
+  /* X-Forwarded-For */
+  /* Supermodel only supports single-IP X-Forwarded-For - by default Varnish adds to whatever X-Forwarded-For it got so we can't trust it */
+  if (req.http.X-Real-IP) {
+    set req.http.X-Forwarded-For = req.http.X-Real-IP;
+  } else {
+    set req.http.X-Forwarded-For = client.ip;
+  }
+
   /* Purging */
   if (req.method == "DELETE" && req.url ~ "^/varnish/") {
-    if (!client.ip ~ purge) {
+    if (!std.ip(req.http.X-Real-IP,client.ip) ~ purge) {
       return(synth(403, "Not allowed."));
     }
 
@@ -54,12 +76,12 @@ sub vcl_recv {
       }
     }
   } else if (req.method == "GET" && req.url == "/varnish/generation") {
-    if (!client.ip ~ purge) {
+    if (!std.ip(req.http.X-Real-IP,client.ip) ~ purge) {
       return(synth(403, "Not allowed."));
     }
     return (synth(200, "Generation: " + var.global_get("generation")));
   } else if (req.method == "PURGE") {
-    if (!client.ip ~ purge) {
+    if (!std.ip(req.http.X-Real-IP,client.ip) ~ purge) {
       return(synth(405, "Not allowed."));
     }
 
@@ -76,7 +98,7 @@ sub vcl_recv {
   # KVR: force the Host so we can test with Varnish on any URL
   # set req.http.Host = "letterboxd.com";
 
-  if (client.ip ~ debug) {
+  if (std.ip(req.http.X-Real-IP,client.ip) ~ debug) {
     set req.http.X-Supermodel-Debug = "YES";
   } else {
     unset req.http.X-Supermodel-Debug;
@@ -109,7 +131,7 @@ sub vcl_recv {
   }
 
   /* Remove context paths on dev */
-  if (req.http.host ~ "dev\.cactuslab\.com$" || req.http.host ~ "letterboxd-dev\.com(\:\d+)?$") {
+  if (req.http.host ~ "dev\.cactuslab\.com$" || req.http.host ~ "office\.cactuslab\.com" || req.http.host ~ "letterboxd-dev\.com(\:\d+)?$") {
     set req.http.X-Supermodel-Path = regsub(req.url, "^/letterboxd/", "/");
     set req.http.X-Supermodel-Development = "YES";
   } else {
@@ -167,12 +189,15 @@ sub vcl_recv {
   } else if (req.http.X-Supermodel-File ~ "^/errors/") {
     set req.http.X-Letterboxd-Cacheable = "YES";
     set req.http.X-Letterboxd-Cacheable-Reason = "Error page";
-  } else if (req.http.X-Supermodel-File ~ "^/favicon.(ico|png)") {
+  } else if (req.http.X-Supermodel-File ~ "^/favicon\.(ico|png)") {
     set req.http.X-Letterboxd-Cacheable = "YES";
     set req.http.X-Letterboxd-Cacheable-Reason = "Favicon";
-  } else if (req.http.X-Supermodel-File ~ "^/apple-touch-icon.png") {
+  } else if (req.http.X-Supermodel-File ~ "^/apple-touch-icon\.png") {
     set req.http.X-Letterboxd-Cacheable = "YES";
     set req.http.X-Letterboxd-Cacheable-Reason = "Apple Touch Icon";
+  } else if (req.http.X-Supermodel-File ~ "^/robots\.txt") {
+    set req.http.X-Letterboxd-Cacheable = "YES";
+    set req.http.X-Letterboxd-Cacheable-Reason = "robots.txt";
   } else if (req.http.X-Supermodel-File ~ "^/admin/") {
     set req.http.X-Letterboxd-Cacheable = "NO";
     set req.http.X-Letterboxd-Cacheable-Reason = "Admin page";
@@ -369,6 +394,7 @@ sub vcl_pass {
 sub vcl_hash {
   hash_data(req.url);
   hash_data(req.http.host);
+  hash_data(req.http.X-Forwarded-Proto);
 
 #   No need to cache logged-in / logged-out separately, since the back end doesn't get this information anymore,
 #   so it won't produce different templates.
@@ -432,7 +458,7 @@ sub vcl_deliver {
     call deliver_add_csrf;
   }
 
-  if (client.ip ~ debug) {
+  if (req.http.X-Supermodel-Debug) {
     set resp.http.X-Debug-Cookie = req.http.Cookie;
     set resp.http.X-Debug-Path = req.http.X-Supermodel-Path;
     set resp.http.X-Debug-Dont-Modify = req.http.X-Supermodel-Dont-Modify;
@@ -470,6 +496,9 @@ Disallow: /"});
     set resp.status = 302;
     set resp.http.Location = req.http.X-Redirect;
     return (deliver);
+  } else {
+    synthetic(resp.reason);
+    return (deliver);
   }
 }
 
@@ -482,6 +511,11 @@ sub vcl_backend_fetch {
 }
 
 sub vcl_backend_response {
+  if ((beresp.status == 500 || beresp.status == 503) && bereq.retries < 1 && (bereq.method == "GET" || bereq.method == "HEAD")) {
+    saintmode.blacklist(20s);
+    return(retry);
+  }
+
   # xkey
   # Letterboxd outputs Surrogate-Key headers, we need those values in the xkey header
   # for the xkey vmod
@@ -505,10 +539,6 @@ sub vcl_backend_response {
       # synthetic("ESI content failed");
       return(deliver);
     }
-  }
-
-  if ((beresp.status == 500 || beresp.status == 503) && bereq.retries < 1 && (bereq.method == "GET" || bereq.method == "HEAD")) {
-    return(retry);
   }
   
   if (bereq.retries > 0 ) {

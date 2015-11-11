@@ -32,7 +32,7 @@ if [ "x$PID" == "x" ]; then
 fi
 
 if [ "x$OUTPUT" == "x" ]; then
-	OUTPUT="./stacks-$(date +%s)-$(hostname --short)"
+	OUTPUT="./stacks-$(date +%s)-$(hostname -s)"
 fi
 
 if [ ! -d "$OUTPUT" ]; then
@@ -43,10 +43,34 @@ if [ ! -d "$OUTPUT" ]; then
 	exit 1
 fi
 
-while true
+# Test whether "date" supports nanos
+if [ "x$(date +%N)" == "xN" ]; then
+	DATE_PATTERN="%s"
+	DIVISOR=1
+else
+	DATE_PATTERN="%s%N"
+	DIVISOR=1000000
+fi
+
+trap cancel INT
+
+RUNNING=1
+
+cancel() {
+	echo "Stopping..."
+	RUNNING=0
+}
+
+while [ $RUNNING -eq 1 ]
 do
-	OUTPUT_FILE="$OUTPUT/$PID-$(($(date +%s%N)/1000000)).txt"
+	OUTPUT_FILE="$OUTPUT/$PID-$(($(date +$DATE_PATTERN)/$DIVISOR)).txt"
 	jstack "$PID" > "$OUTPUT_FILE"
 	echo -n "."
 	sleep "$SLEEP"
 done
+
+# Analyze
+LIBEXEC=$(dirname $0)/../libexec
+PARSER_JAR="$LIBEXEC"/parser/parser.jar
+
+java -jar "$PARSER_JAR" "$OUTPUT"
