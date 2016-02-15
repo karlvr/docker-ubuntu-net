@@ -1,6 +1,6 @@
 <?xml version="1.0" ?>
 
-<server xmlns="urn:jboss:domain:3.0">
+<server xmlns="urn:jboss:domain:4.0">
     <extensions>
         <extension module="org.infinispan.extension"/>
         <extension module="org.infinispan.server.endpoint"/>
@@ -84,20 +84,11 @@
             <logger category="com.arjuna">
                 <level name="WARN"/>
             </logger>
-            <logger category="org.apache.tomcat.util.modeler">
-                <level name="WARN"/>
-            </logger>
             <logger category="org.jboss.as.config">
                 <level name="DEBUG"/>
             </logger>
             <logger category="sun.rmi">
                 <level name="WARN"/>
-            </logger>
-            <logger category="jacorb">
-                <level name="WARN"/>
-            </logger>
-            <logger category="jacorb.config">
-                <level name="ERROR"/>
             </logger>
             <root-logger>
                 <level name="INFO"/>
@@ -116,11 +107,11 @@
         <subsystem xmlns="urn:jboss:domain:deployment-scanner:2.0">
             <deployment-scanner path="deployments" relative-to="jboss.server.base.dir" scan-interval="5000" runtime-failure-causes-rollback="${jboss.deployment.scanner.rollback.on.failure:false}"/>
         </subsystem>
-        <subsystem xmlns="urn:jboss:domain:datasources:3.0">
+        <subsystem xmlns="urn:jboss:domain:datasources:4.0">
             <datasources />
         </subsystem>
-        <subsystem xmlns="urn:infinispan:server:core:8.0" default-cache-container="clustered80">
-            <cache-container name="clustered80" default-cache="letterboxd.metadata" statistics="true">
+        <subsystem xmlns="urn:infinispan:server:core:8.1" default-cache-container="clustered81">
+            <cache-container name="clustered81" default-cache="letterboxd.metadata" statistics="true">
                 <transport lock-timeout="60000"/>
                 <distributed-cache name="letterboxd.metadata" mode="SYNC" segments="20" owners="2" remote-timeout="30000" start="EAGER">
                     <locking acquire-timeout="30000" concurrency-level="1000" striping="false"/>
@@ -135,21 +126,20 @@
                     <expiration lifespan="1800000" />
                 </distributed-cache>
             </cache-container>
-            <cache-container name="security"/>
         </subsystem>
         <subsystem xmlns="urn:infinispan:server:endpoint:8.0">
-            <hotrod-connector socket-binding="hotrod" cache-container="clustered80">
+            <hotrod-connector socket-binding="hotrod" cache-container="clustered81">
                 <topology-state-transfer lazy-retrieval="false" lock-timeout="1000" replication-timeout="5000"/>
             </hotrod-connector>
             <!--
-            <memcached-connector socket-binding="memcached" cache-container="clustered80"/>
-            <rest-connector socket-binding="rest" cache-container="clustered80" security-domain="other" auth-method="BASIC"/>
-            <websocket-connector socket-binding="websocket" cache-container="clustered80"/>
+            <memcached-connector socket-binding="memcached" cache-container="clustered81"/>
+            <rest-connector socket-binding="rest" cache-container="clustered81" security-domain="other" auth-method="BASIC"/>
+            <websocket-connector socket-binding="websocket" cache-container="clustered81"/>
             -->
         </subsystem>
         <subsystem xmlns="urn:infinispan:server:jgroups:8.0">
-            <channels default="cluster80">
-                <channel name="cluster80"/>
+            <channels default="cluster81">
+                <channel name="cluster81"/>
             </channels>
             <stacks default="${jboss.default.jgroups.stack:udp}">
                 <stack name="udp">
@@ -255,7 +245,7 @@
             <worker name="default"/>
             <buffer-pool name="default"/>
         </subsystem>
-        <subsystem xmlns="urn:jboss:domain:jca:3.0">
+        <subsystem xmlns="urn:jboss:domain:jca:4.0">
             <archive-validation enabled="true" fail-on-error="true" fail-on-warn="false"/>
             <bean-validation enabled="true"/>
             <default-workmanager>
@@ -284,7 +274,7 @@
             <remote-naming/>
         </subsystem>
         <subsystem xmlns="urn:jboss:domain:remoting:3.0">
-            <endpoint worker="default"/>
+            <endpoint/>
             <http-connector name="http-remoting-connector" connector-ref="default" security-realm="ApplicationRealm"/>
         </subsystem>
         <subsystem xmlns="urn:jboss:domain:security:1.2">
@@ -344,5 +334,11 @@
         <socket-binding name="txn-recovery-environment" port="4712"/>
         <socket-binding name="txn-status-manager" port="4713"/>
         <socket-binding name="websocket" port="8181"/>
+        <outbound-socket-binding name="remote-store-hotrod-server">
+            <remote-destination host="remote-host" port="11222"/>
+        </outbound-socket-binding>
+        <outbound-socket-binding name="remote-store-rest-server">
+            <remote-destination host="remote-host" port="8080"/>
+        </outbound-socket-binding>
     </socket-binding-group>
 </server>
