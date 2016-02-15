@@ -328,7 +328,7 @@ sub vcl_recv {
   }
   if (req.http.X-Supermodel-Path ~ "(\?|&)esiAllowFilters=true(&|$)") {
     set req.http.X-Letterboxd-Cookie-Set = req.http.X-Letterboxd-Cookie-Set + "FILTERS ";
-    set req.http.X-Supermodel-Cookies-Allowed = req.http.X-Supermodel-Cookies-Allowed + ",hideShortsFilter,hideUnreleasedFilter,hideWatchlistedFilter,watchedOrUnwatchedFilter";
+    set req.http.X-Supermodel-Cookies-Allowed = req.http.X-Supermodel-Cookies-Allowed + ",hideShortsFilter,hideUnreleasedFilter,watchlistFilter,watchedOrUnwatchedFilter";
   } else {
     set req.http.X-Letterboxd-Filter-Stripped = "YES";
   }

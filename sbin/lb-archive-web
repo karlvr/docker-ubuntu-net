@@ -1,0 +1,21 @@
+#!/bin/bash
+#
+# Archive the current web dir
+
+set -eu
+
+BACKUP_BASE_DIR=/srv/www/letterboxd/archive
+
+mkdir -p "$BACKUP_BASE_DIR"
+
+BACKUP_DIR="$BACKUP_BASE_DIR"/web-$(date +%Y%m%d)
+if [ -d "$BACKUP_DIR" ]; then
+	BACKUP_DIR=/srv/www/letterboxd/archive/web-$(date +%Y%m%d%H%M)
+fi
+if [ -d "$BACKUP_DIR" ]; then
+	echo "Archive dir already exists: $BACKUP_DIR"
+	exit 1
+fi
+
+echo "Archiving letterboxd web: $BACKUP_DIR"
+rsync -a /srv/www/letterboxd/web/* "$BACKUP_DIR"
