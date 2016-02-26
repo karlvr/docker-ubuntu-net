@@ -9,7 +9,7 @@ mkdir -p "$EXTRACT_DIR"
 
 USER=epfuser19e9c30
 PASSWORD=375891146ac1d9786d91296e81b9be53
-URL=https://feeds.itunes.apple.com/feeds/epf/v3/full/current
+URL=https://feeds.itunes.apple.com/feeds/epf/v3/full/current/
 
 wget -r --no-host-directories --no-directories --no-parent --timestamping \
 	--accept "itunes*.tbz,pricing*.tbz" -P "$DOWNLOAD_DIR" \
