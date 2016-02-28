@@ -1,0 +1,12 @@
+{
+	"checks": {
+		"varnish_backends_check": {
+      		"handlers": ["default"],
+			"command": "/opt/letterboxd/sensu/plugins/check-varnish-backends.sh",
+			"standalone": true,
+			"interval": 60,
+			"occurrences": 3,
+			"refresh": 1800
+	    }
+    }
+}
