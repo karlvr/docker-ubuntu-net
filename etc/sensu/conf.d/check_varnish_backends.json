@@ -5,7 +5,7 @@
 			"command": "/opt/letterboxd/sensu/plugins/check-varnish-backends.sh",
 			"standalone": true,
 			"interval": 60,
-			"occurrences": 3,
+			"occurrences": 1,
 			"refresh": 1800
 	    }
     }
