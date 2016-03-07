@@ -56,9 +56,6 @@ cat <<EOF > /srv/tomcat/letterboxd/.bash_profile
 export JAVA_MAX_HEAP=10G
 export JAVA_OPTS="-Xms5G -XX:ReservedCodeCacheSize=300M"
 
-# NewRelic
-#export JAVA_OPTS="$JAVA_OPTS -javaagent:$HOME/newrelic/newrelic.jar"
-
 # Performance baseline for David Maplesden
 #export JAVA_OPTS="$JAVA_OPTS -Xloggc:gc.log -verbose:gc"
 EOF
