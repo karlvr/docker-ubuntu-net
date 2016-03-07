@@ -50,14 +50,25 @@ esac
 
 cat <<EOF > /srv/tomcat/letterboxd/.bash_profile
 #!/bin/bash
+#
+# NB: this file is automatically created by the init-app-server.sh script
+
 export JAVA_MAX_HEAP=10G
-export JAVA_OPTS="-XX:PermSize=256M -XX:MaxPermSize=256M -verbose:gc -XX:+UseConcMarkSweepGC -XX:+CMSIncrementalMode"
+export JAVA_OPTS="-Xms5G -XX:ReservedCodeCacheSize=300M"
+
+# NewRelic
+#export JAVA_OPTS="$JAVA_OPTS -javaagent:$HOME/newrelic/newrelic.jar"
+
+# Performance baseline for David Maplesden
+#export JAVA_OPTS="$JAVA_OPTS -Xloggc:gc.log -verbose:gc"
 EOF
 
 cat <<EOF > /srv/tomcat/staging/.bash_profile
 #!/bin/bash
+#
+# NB: this file is automatically created by the init-app-server.sh script
+
 export JAVA_MAX_HEAP=6512M
-export JAVA_OPTS="-XX:PermSize=256M -XX:MaxPermSize=256M -verbose:gc -XX:+UseConcMarkSweepGC -XX:+CMSIncrementalMode"
 EOF
 
 # pgpool2
