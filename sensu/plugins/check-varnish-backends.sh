@@ -5,7 +5,7 @@ VARNISHADDRESS=localhost:6082
 VARNISHSECRET=/etc/varnish/secret-sensu
 NAME=CheckVarnishBackends
 
-OUTPUT=$("$VARNISHADM" -T "$VARNISHADDRESS" -S "$VARNISHSECRET" backend.list -p | grep -e root)
+OUTPUT=$("$VARNISHADM" -T "$VARNISHADDRESS" -S "$VARNISHSECRET" backend.list -p | grep -e boot)
 
 BACKENDS=$(echo "$OUTPUT" | wc -l)
 HEALTHY_BACKENDS=$(echo "$OUTPUT" | grep Healthy | wc -l)
