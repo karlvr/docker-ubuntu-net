@@ -12,5 +12,5 @@
 # For information about entries in this file, type "man shorewall-interfaces"
 ###############################################################################
 #ZONE	INTERFACE	BROADCAST	OPTIONS
-net     eth0        detect      dhcp,logmartians
-int 	eth1		detect		logmartians
+net     $NET_IF     detect      dhcp,logmartians
+int 	$VLAN_IF	detect		logmartians
