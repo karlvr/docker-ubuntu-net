@@ -74,3 +74,16 @@ cat <<EOF > /srv/tomcat/staging/.bash_profile
 
 export JAVA_MAX_HEAP=6512M
 EOF
+
+# Apache
+if [ -d /etc/apache2/conf-available ]; then
+	cat > /etc/apache2/conf-available/letterboxd.conf <<EOF
+# Allow serving of Letterboxd bundled web content
+<Directory /opt/letterboxd/www/>
+        Options Indexes FollowSymLinks
+        AllowOverride None
+        Require all granted
+</Directory>
+EOF
+	/usr/sbin/a2enconf letterboxd
+fi
