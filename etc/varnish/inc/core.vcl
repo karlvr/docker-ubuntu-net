@@ -257,6 +257,9 @@ sub vcl_recv {
   } else if (req.http.X-Supermodel-File ~ "^/(search|welcome|pro|contact)/?$") {
     set req.http.X-Letterboxd-Cacheable = "YES";
     set req.http.X-Letterboxd-Cacheable-Reason = "search page, welcome page, pro page, contact page";
+  } else if (req.http.X-Supermodel-File ~ "^/(app)/?$") {
+    set req.http.X-Letterboxd-Cacheable = "YES";
+    set req.http.X-Letterboxd-Cacheable-Reason = "iPhone app page";
   } else if (req.http.X-Supermodel-File ~ "^/search/.*$") {
     set req.http.X-Letterboxd-Cacheable = "YES";
     set req.http.X-Letterboxd-Cacheable-Reason = "search results page";
