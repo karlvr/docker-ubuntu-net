@@ -10,15 +10,19 @@ fi
 case $(hostname) in
 	app1)
 		STATIC_URLS="http://elephant.s1.ltrbxd.com http://psycho.s1.ltrbxd.com http://predator.s1.ltrbxd.com http://memento.s1.ltrbxd.com"
+		SECURE_STATIC_URLS="https://s1.ltrbxd.com"
 		;;
 	app2)
 		STATIC_URLS="http://bullitt.s2.ltrbxd.com http://up.s2.ltrbxd.com http://brick.s2.ltrbxd.com http://moon.s2.ltrbxd.com"
+		SECURE_STATIC_URLS="https://s2.ltrbxd.com"
 		;;
 	app3)
 		STATIC_URLS="http://tron.s3.ltrbxd.com http://solaris.s3.ltrbxd.com http://robocop.s3.ltrbxd.com http://notorious.s3.ltrbxd.com"
+		SECURE_STATIC_URLS="https://s3.ltrbxd.com"
 		;;
 	app4)
 		STATIC_URLS="http://commando.s4.ltrbxd.com http://alien.s4.ltrbxd.com http://drive.s4.ltrbxd.com http://wargames.s4.ltrbxd.com"
+		SECURE_STATIC_URLS="https://s4.ltrbxd.com"
 		;;
 	*)
 		echo "Unsupported hostname: $(hostname)"
@@ -52,6 +56,7 @@ sed -e "s/<Engine name=\"Catalina\" defaultHost=\"localhost\">/<Engine name=\"Ca
 # Asset configuration
 /bin/cp /opt/letterboxd/etc/tomcat/conf/letterboxd.xml /srv/tomcat/letterboxd/conf/Catalina/localhost/ROOT.xml
 /bin/sed -e "s|STATIC_URLS|$STATIC_URLS|" --in-place /srv/tomcat/letterboxd/conf/Catalina/localhost/ROOT.xml
+/bin/sed -e "s|SECURE_STATIC_URLS|$SECURE_STATIC_URLS|" --in-place /srv/tomcat/letterboxd/conf/Catalina/localhost/ROOT.xml
 
 /bin/cp /opt/letterboxd/etc/tomcat/conf/staging.xml /srv/tomcat/staging/conf/Catalina/localhost/ROOT.xml
 

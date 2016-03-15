@@ -5,14 +5,14 @@
     http://oblivion.a.ltrbxd.com
     http://primer.a.ltrbxd.com" />
 
-  <Environment name="com/xk72/webparts/assets/secure-url" override="true"
+  <Environment name="com/xk72/webparts/assets/secureUrl" override="true"
     type="java.lang.String" value="https://a.ltrbxd.com" />
 
   <Environment name="com/cactuslab/supermodel/Application/static-urls" override="true"
     type="java.lang.String" value="STATIC_URLS" />
 
   <Environment name="com/cactuslab/supermodel/Application/secure-static-urls" override="true"
-    type="java.lang.String" value="STATIC_URLS" />
+    type="java.lang.String" value="SECURE_STATIC_URLS" />
 
   <ResourceLink global="mail/Session" name="mail/Session"
     type="javax.mail.Session" />
