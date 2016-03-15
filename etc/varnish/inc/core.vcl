@@ -23,6 +23,8 @@ acl purge {
   "127.0.0.1";
   "199.195.199.60";
   "199.195.199.116";
+  "107.182.234.196";
+  "173.244.209.162";
   "10.0.0.0"/8;
   "123.100.90.137";
 }
@@ -255,6 +257,9 @@ sub vcl_recv {
   } else if (req.http.X-Supermodel-File ~ "^/(search|welcome|pro|contact)/?$") {
     set req.http.X-Letterboxd-Cacheable = "YES";
     set req.http.X-Letterboxd-Cacheable-Reason = "search page, welcome page, pro page, contact page";
+  } else if (req.http.X-Supermodel-File ~ "^/(app)/?$") {
+    set req.http.X-Letterboxd-Cacheable = "YES";
+    set req.http.X-Letterboxd-Cacheable-Reason = "iPhone app page";
   } else if (req.http.X-Supermodel-File ~ "^/search/.*$") {
     set req.http.X-Letterboxd-Cacheable = "YES";
     set req.http.X-Letterboxd-Cacheable-Reason = "search results page";

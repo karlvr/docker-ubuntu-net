@@ -7,9 +7,33 @@ if [ ! -d /opt/tomcat ]; then
 	exit 1
 fi
 
+case $(hostname) in
+	app1)
+		STATIC_URLS="http://elephant.s1.ltrbxd.com http://psycho.s1.ltrbxd.com http://predator.s1.ltrbxd.com http://memento.s1.ltrbxd.com"
+		SECURE_STATIC_URLS="https://s1.ltrbxd.com"
+		;;
+	app2)
+		STATIC_URLS="http://bullitt.s2.ltrbxd.com http://up.s2.ltrbxd.com http://brick.s2.ltrbxd.com http://moon.s2.ltrbxd.com"
+		SECURE_STATIC_URLS="https://s2.ltrbxd.com"
+		;;
+	app3)
+		STATIC_URLS="http://tron.s3.ltrbxd.com http://solaris.s3.ltrbxd.com http://robocop.s3.ltrbxd.com http://notorious.s3.ltrbxd.com"
+		SECURE_STATIC_URLS="https://s3.ltrbxd.com"
+		;;
+	app4)
+		STATIC_URLS="http://commando.s4.ltrbxd.com http://alien.s4.ltrbxd.com http://drive.s4.ltrbxd.com http://wargames.s4.ltrbxd.com"
+		SECURE_STATIC_URLS="https://s4.ltrbxd.com"
+		;;
+	*)
+		echo "Unsupported hostname: $(hostname)"
+		exit 1
+		;;
+esac
+
 /bin/rm -f /etc/apache2/sites-available/letterboxd
-/bin/ln -s /opt/letterboxd/etc/apache2/sites-available/letterboxd /etc/apache2/sites-available/letterboxd
+/bin/ln -s /opt/letterboxd/etc/apache2/sites-available/letterboxd.conf /etc/apache2/sites-available/letterboxd.conf
 /usr/sbin/a2ensite letterboxd
+/usr/sbin/a2enmod ssl
 
 /bin/rm -f /etc/apache2/workers.properties
 /bin/ln -s /opt/letterboxd/etc/apache2/workers.properties /etc/apache2/workers.properties
@@ -30,46 +54,41 @@ sed -e "s/<Connector port=\"20001\" address=\"127.0.0.1\"/<Connector port=\"2000
 sed -e "s/<Engine name=\"Catalina\" defaultHost=\"localhost\">/<Engine name=\"Catalina\" defaultHost=\"localhost\" jvmRoute=\"$(hostname)\">/" --in-place /srv/tomcat/letterboxd/conf/server.xml
 
 # Asset configuration
-case $(hostname) in
-	app1)
-		STATIC_URLS="http://elephant.s1.ltrbxd.com http://psycho.s1.ltrbxd.com http://predator.s1.ltrbxd.com http://memento.s1.ltrbxd.com"
-		;;
-	app2)
-		STATIC_URLS="http://bullitt.s2.ltrbxd.com http://up.s2.ltrbxd.com http://brick.s2.ltrbxd.com http://moon.s2.ltrbxd.com"
-		;;
-	*)
-		echo "Unsupported hostname: $(hostname)"
-		exit 1
-		;;
-esac
-
 /bin/cp /opt/letterboxd/etc/tomcat/conf/letterboxd.xml /srv/tomcat/letterboxd/conf/Catalina/localhost/ROOT.xml
 /bin/sed -e "s|STATIC_URLS|$STATIC_URLS|" --in-place /srv/tomcat/letterboxd/conf/Catalina/localhost/ROOT.xml
+/bin/sed -e "s|SECURE_STATIC_URLS|$SECURE_STATIC_URLS|" --in-place /srv/tomcat/letterboxd/conf/Catalina/localhost/ROOT.xml
 
 /bin/cp /opt/letterboxd/etc/tomcat/conf/staging.xml /srv/tomcat/staging/conf/Catalina/localhost/ROOT.xml
 
 cat <<EOF > /srv/tomcat/letterboxd/.bash_profile
 #!/bin/bash
+#
+# NB: this file is automatically created by the init-app-server.sh script
+
 export JAVA_MAX_HEAP=10G
-export JAVA_OPTS="-XX:PermSize=256M -XX:MaxPermSize=256M -verbose:gc -XX:+UseConcMarkSweepGC -XX:+CMSIncrementalMode"
+export JAVA_OPTS="-Xms5G -XX:ReservedCodeCacheSize=300M"
+
+# Performance baseline for David Maplesden
+#export JAVA_OPTS="$JAVA_OPTS -Xloggc:gc.log -verbose:gc"
 EOF
 
 cat <<EOF > /srv/tomcat/staging/.bash_profile
 #!/bin/bash
+#
+# NB: this file is automatically created by the init-app-server.sh script
+
 export JAVA_MAX_HEAP=6512M
-export JAVA_OPTS="-XX:PermSize=256M -XX:MaxPermSize=256M -verbose:gc -XX:+UseConcMarkSweepGC -XX:+CMSIncrementalMode"
 EOF
 
-# pgpool2
-
-CODENAME=`lsb_release -c -s`
-cat <<EOF > /etc/apt/sources.list.d/pgdg.list
-deb http://apt.postgresql.org/pub/repos/apt/ $CODENAME-pgdg main
+# Apache
+if [ -d /etc/apache2/conf-available ]; then
+	cat > /etc/apache2/conf-available/letterboxd.conf <<EOF
+# Allow serving of Letterboxd bundled web content
+<Directory /opt/letterboxd/www/>
+        Options Indexes FollowSymLinks
+        AllowOverride None
+        Require all granted
+</Directory>
 EOF
-wget --quiet -O - http://apt.postgresql.org/pub/repos/apt/ACCC4CF8.asc | sudo apt-key add -
-apt-get update
-
-apt-get install pgpool2
-
-# We install postgresql client so we can test connectivity
-apt-get install postgresql-client-9.3
+	/usr/sbin/a2enconf letterboxd
+fi

@@ -16,5 +16,7 @@ mkdir "$HOME/newrelic"
 ln -s /opt/letterboxd/etc/newrelic/* "$HOME/newrelic/"
 
 cat >> "$HOME/.bash_profile" <<"EOF"
+
+# NewRelic
 export JAVA_OPTS="$JAVA_OPTS -javaagent:$HOME/newrelic/newrelic.jar"
 EOF
