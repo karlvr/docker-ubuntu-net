@@ -10,7 +10,7 @@
     },
     "website_check_letterboxd_embeds.js": {
       "handlers": ["default"],
-      "command": "check-http.rb --url http://127.0.0.1/static/js/embeds.js",
+      "command": "/opt/orac/sensu/plugins/vendor/check-http.rb --url http://127.0.0.1/static/js/embeds.js",
       "standalone": true,
       "interval": 3600,
       "occurrences": 2,
@@ -18,7 +18,7 @@
     },
     "website_check_letterboxd_embed-partner.min.js": {
       "handlers": ["default"],
-      "command": "check-http.rb --url http://127.0.0.1/static/js/embed-partner.min.js",
+      "command": "/opt/orac/sensu/plugins/vendor/check-http.rb --url http://127.0.0.1/static/js/embed-partner.min.js",
       "standalone": true,
       "interval": 3600,
       "occurrences": 2,
