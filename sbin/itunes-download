@@ -9,9 +9,9 @@ mkdir -p "$EXTRACT_DIR"
 
 USER=epfuser19e9c30
 PASSWORD=375891146ac1d9786d91296e81b9be53
-URL=https://feeds.itunes.apple.com/feeds/epf/v3/full/current
+URL=https://feeds.itunes.apple.com/feeds/epf/v3/full/current/
 
-wget -r --no-host-directories --no-directories --no-parent --timestamping \
+wget -r -l 1 --no-host-directories --no-directories --no-parent --timestamping \
 	--accept "itunes*.tbz,pricing*.tbz" -P "$DOWNLOAD_DIR" \
 	--user "$USER" --password "$PASSWORD" $URL
 
@@ -26,6 +26,20 @@ done
 for i in $(ls -r "$DOWNLOAD_DIR"/pricing*.tbz | tail -n +2); do
 	rm -f "$i"
 done
+
+# Check file sizes
+ITUNES_TBZ_SIZE=$(du -k "$ITUNES_TBZ" | cut -f 1)
+PRICING_TBZ_SIZE=$(du -k "$PRICING_TBZ" | cut -f 1)
+
+if [ $ITUNES_TBZ_SIZE -lt 5242880 ]; then
+	echo "*** $ITUNES_TBZ is too small at $ITUNES_TBZ_SIZE KB"
+	exit 1
+fi
+if [ $PRICING_TBZ_SIZE -lt 10485760 ]; then
+	echo "*** $PRICING_TBZ is too small at $PRICING_TBZ_SIZE KB"
+	exit 1
+fi
+
 
 ITUNES_FOLDER=${ITUNES_TBZ##*/}
 ITUNES_FOLDER=${ITUNES_FOLDER%.*}
