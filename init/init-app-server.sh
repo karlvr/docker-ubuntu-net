@@ -92,3 +92,8 @@ if [ -d /etc/apache2/conf-available ]; then
 EOF
 	/usr/sbin/a2enconf letterboxd
 fi
+
+# Exim
+cat > /etc/exim4/smart_domains <<EOF
+letterboxd.com: smtp.mandrillapp.com::587
+EOF
