@@ -557,8 +557,8 @@ sub vcl_backend_response {
   set beresp.http.X-Backend = beresp.backend.name;
 
   # GZIP some responses to store in the cache, as we disable gzip in vcl_backend_fetch
-  if (beresp.http.Content-Type ~ "^text/" || beresp.http.Content-Type == "application/xml" || beresp.http.Content-Type == "application/xhtml+xml" || 
-    beresp.http.Content-Type == "application/x-javascript" || beresp.http.Content-Type == "application/javascript") {
+  if (beresp.http.Content-Type ~ "^text/" || beresp.http.Content-Type ~ "^application/xml" || beresp.http.Content-Type ~ "^application/xhtml" || 
+    beresp.http.Content-Type ~ "^application/x-javascript" || beresp.http.Content-Type ~ "^application/javascript") {
     set beresp.do_gzip = true;
   }
 
