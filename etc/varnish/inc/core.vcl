@@ -531,7 +531,7 @@ sub vcl_backend_response {
     set beresp.uncacheable = true;
   }
 
-  if (bereq.http.X-Supermodel-ESI == "YES") {
+  if (bereq.http.X-Supermodel-ESI == "YES" && beresp.http.Content-Type == "text/html") {
     # KVR: We pass the X-Supermodel-ESI to the backend to let it know that we support ESI.
     set beresp.do_esi = true;
 
