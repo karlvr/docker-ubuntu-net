@@ -110,8 +110,8 @@
         <subsystem xmlns="urn:jboss:domain:datasources:4.0">
             <datasources />
         </subsystem>
-        <subsystem xmlns="urn:infinispan:server:core:8.1" default-cache-container="clustered81">
-            <cache-container name="clustered81" default-cache="letterboxd.metadata" statistics="true">
+        <subsystem xmlns="urn:infinispan:server:core:8.2" default-cache-container="clustered82">
+            <cache-container name="clustered82" default-cache="letterboxd.metadata" statistics="true">
                 <transport lock-timeout="60000"/>
                 <distributed-cache name="letterboxd.metadata" mode="SYNC" segments="20" owners="2" remote-timeout="30000" start="EAGER">
                     <locking acquire-timeout="30000" concurrency-level="1000" striping="false"/>
@@ -128,18 +128,18 @@
             </cache-container>
         </subsystem>
         <subsystem xmlns="urn:infinispan:server:endpoint:8.0">
-            <hotrod-connector socket-binding="hotrod" cache-container="clustered81">
+            <hotrod-connector socket-binding="hotrod" cache-container="clustered82">
                 <topology-state-transfer lazy-retrieval="false" lock-timeout="1000" replication-timeout="5000"/>
             </hotrod-connector>
             <!--
-            <memcached-connector socket-binding="memcached" cache-container="clustered81"/>
-            <rest-connector socket-binding="rest" cache-container="clustered81" security-domain="other" auth-method="BASIC"/>
-            <websocket-connector socket-binding="websocket" cache-container="clustered81"/>
+            <memcached-connector socket-binding="memcached" cache-container="clustered82"/>
+            <rest-connector socket-binding="rest" cache-container="clustered82" security-domain="other" auth-method="BASIC"/>
+            <websocket-connector socket-binding="websocket" cache-container="clustered82"/>
             -->
         </subsystem>
         <subsystem xmlns="urn:infinispan:server:jgroups:8.0">
-            <channels default="cluster81">
-                <channel name="cluster81"/>
+            <channels default="cluster82">
+                <channel name="cluster82"/>
             </channels>
             <stacks default="${jboss.default.jgroups.stack:udp}">
                 <stack name="udp">
