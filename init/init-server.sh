@@ -101,3 +101,18 @@ cat <<EOF >>/etc/exim4/smart_domains
 letterboxd.com: smtp.sparkpostmail.com::587
 EOF
 
+# Hosts
+cat <<EOF >>/etc/hosts
+199.195.197.28 db1.letterboxd.com
+199.189.108.4 db2.letterboxd.com
+199.195.199.60 app1.letterboxd.com
+199.195.199.116 app2.letterboxd.com
+107.182.234.196 app3.letterboxd.com
+173.244.209.162 app4.letterboxd.com
+10.100.10.1 db1.letterboxd.com db1
+10.100.10.2 db2.letterboxd.com db2
+10.100.1.1 app1.letterboxd.com app1
+10.100.1.2 app2.letterboxd.com app2
+10.100.1.3 app3.letterboxd.com app3
+10.100.1.4 app4.letterboxd.com app4
+EOF
