@@ -88,6 +88,3 @@ cat > /root/.ssh/id_rsa.pub <<EOF
 ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQC0CH+e9092sI23gTBbSjrki8qL2IKH0Cs2pbyyCN3YyaxsW6U8Qj7Qfpv7d99njfT9C7ce4JRVgqUO6tgoGvjlPEDWrRSdjWy+94/pTSUiysWLZ69dVFiCvv5GV9eT83GJsnJwqDm1vhPeXM4uFuMhqFMz0L4ktFs7LC2iachcKF2S41gj++AZxEF4VV6lX+m75oy2wUL99l7z1MBkTQfruxk7q6MRfZi2il9KO8/o6UjEVMLbzcGFUxwMqu26kaH4SgjLKDe8Ff0Jp0sH5WKmRzC7UCsA1JL0128mIKp6HtQDvY4jY0V3PZNHWbnR0H8oOyKzbWMY+72f5Olt7xmL root@app1
 EOF
 
-# Sensu
-mkdir -p /etc/sensu/conf.d
-ln -s /opt/letterboxd/etc/sensu/conf.d/check_websites.json /etc/sensu/conf.d/check_websites.json

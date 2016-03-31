@@ -93,7 +93,6 @@ EOF
 	/usr/sbin/a2enconf letterboxd
 fi
 
-# Exim
-cat > /etc/exim4/smart_domains <<EOF
-letterboxd.com: smtp.mandrillapp.com::587
-EOF
+# Sensu
+mkdir -p /etc/sensu/conf.d
+ln -s /opt/letterboxd/etc/sensu/conf.d/check_websites.json /etc/sensu/conf.d/check_websites.json
