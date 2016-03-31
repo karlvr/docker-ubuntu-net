@@ -8,6 +8,7 @@ fi
 
 source /opt/orac/init/functions.sh
 
+# Shorewall
 if [ ! -d /etc/shorewall ]; then
 	echo "Please run /opt/orac/init/init-security.sh script first"
 	exit 1
@@ -86,5 +87,17 @@ a9wqlXxhhei++yHaFBf7CuddPerKJgpmphT3a6lTpmaW4oRLAaR/o1dRSXXbdOxJ
 EOF
 cat > /root/.ssh/id_rsa.pub <<EOF
 ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQC0CH+e9092sI23gTBbSjrki8qL2IKH0Cs2pbyyCN3YyaxsW6U8Qj7Qfpv7d99njfT9C7ce4JRVgqUO6tgoGvjlPEDWrRSdjWy+94/pTSUiysWLZ69dVFiCvv5GV9eT83GJsnJwqDm1vhPeXM4uFuMhqFMz0L4ktFs7LC2iachcKF2S41gj++AZxEF4VV6lX+m75oy2wUL99l7z1MBkTQfruxk7q6MRfZi2il9KO8/o6UjEVMLbzcGFUxwMqu26kaH4SgjLKDe8Ff0Jp0sH5WKmRzC7UCsA1JL0128mIKp6HtQDvY4jY0V3PZNHWbnR0H8oOyKzbWMY+72f5Olt7xmL root@app1
+EOF
+
+# Email
+sed -e "s/d490db2f9e4c43ae3ff5378e13a2676236f54e2a/cf421b0221a151d90b2998bb2d743a42f1bd99c4/" --in-place /etc/exim4/passwd.client
+if [ $? != 0 ]; then
+	cat <<EOF >>/etc/exim4/passwd.client
+*.sparkpostmail.com:SMTP_Injection:cf421b0221a151d90b2998bb2d743a42f1bd99c4
+EOF
+fi
+
+cat <<EOF >>/etc/exim4/smart_domains
+letterboxd.com: smtp.sparkpostmail.com::587
 EOF
 
