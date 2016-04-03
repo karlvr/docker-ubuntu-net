@@ -116,3 +116,6 @@ cat <<EOF >>/etc/hosts
 10.100.1.3 app3.letterboxd.com app3
 10.100.1.4 app4.letterboxd.com app4
 EOF
+
+# DNS
+sed -e "s/127\.0\.0\.1/8.8.8.8/" --in-place /etc/resolv.conf
