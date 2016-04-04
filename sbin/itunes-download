@@ -1,8 +1,16 @@
 #!/bin/bash
 #
 
-DOWNLOAD_DIR=/tmp/letterboxd-itunes/download
-EXTRACT_DIR=/tmp/letterboxd-itunes/extract
+if [ $(id -un) != "availability" ]; then
+	echo "This script must be run as availability user"
+	exit 1
+fi
+
+TMPDIRNAME=itunes
+. $(dirname $0)/../libexec/tool-base.sh
+
+DOWNLOAD_DIR="$TMPDIR"/download
+EXTRACT_DIR="$TMPDIR"/extract
 
 mkdir -p "$DOWNLOAD_DIR"
 mkdir -p "$EXTRACT_DIR"

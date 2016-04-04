@@ -19,16 +19,13 @@ done
 
 shift $((OPTIND-1))
 
-if [ $DEV == 0 -a $(id -un) != "letterboxd" ]; then
-	echo "This script must be run as letterboxd"
-	exit 1
-fi
-
 TMPDIR=
 
 if [ $DEV == 0 ]; then
 	TOOLSJAR=/srv/tools/letterboxd-tools-1.0-SNAPSHOT-jar-with-dependencies.jar
-	if [ "x$TMPDIRNAME" != "x" ]; then
+	if [ "x$HOME" != "x" -a "x$TMPDIRNAME" != "x" ]; then
+		TMPDIR="$HOME"/work/"$TMPDIRNAME"
+	elif [ "x$TMPDIRNAME" != "x" ]; then
 		TMPDIR=/tmp/$TMPDIRNAME/tmp
 	fi
 	TOMCATLIBDIR=/opt/tomcat/lib

@@ -2,10 +2,10 @@
 # To update availability services
 
 # Netflix - daily
-#30 20 * * * letterboxd /opt/letterboxd/sbin/netflix-update
+#30 20 * * * availability /opt/letterboxd/sbin/netflix-update
 
 # iTunes - Sunday 0:00, which appears to be a number of hours after the weekly data update
-0 0 * * 0 letterboxd /opt/letterboxd/sbin/itunes-download-update
+0 0 * * 0 availability /opt/letterboxd/sbin/itunes-download-update
 
 # Amazon - 1st of the month 9:00
-0 9 1 * * letterboxd /opt/letterboxd/sbin/amazon-update
+0 9 1 * * availability /opt/letterboxd/sbin/amazon-update
