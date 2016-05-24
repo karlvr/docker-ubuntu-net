@@ -50,8 +50,12 @@ ACCEPT		vlan 	$FW		tcp		11222	# hotrod
 ACCEPT		$FW 	vlan	tcp		11222	# hotrod
 ACCEPT		vlan	$FW 	tcp		7800:7830	# embedded jgroups TCP
 ACCEPT 		$FW 	vlan	tcp		7800:7830	# embedded jgroups TCP
+ACCEPT		vlan	$FW 	tcp		7900:7930	# embedded jgroups TCP
+ACCEPT 		$FW 	vlan	tcp		7900:7930	# embedded jgroups TCP
 ACCEPT		vlan	$FW 	tcp		57800:57900 # embedded jgroups FD
 ACCEPT		$FW		vlan 	tcp		57800:57900 # embedded jgroups FD
+ACCEPT		vlan	$FW 	tcp		58000:58100 # embedded jgroups FD
+ACCEPT		$FW		vlan 	tcp		58000:58100 # embedded jgroups FD
 
 ## General vlan access
 SSH(ACCEPT)     vlan     $FW
