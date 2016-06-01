@@ -39,10 +39,10 @@
     jdbcInterceptors="StatementCache(max=1000);QueryTimeoutInterceptor(queryTimeout=60)"
     validationQuery="select 1" validationInterval="30000" testOnBorrow="true" />
 
-  <Resource name="jdbc/DataSourceAdmin" auth="Container"
+  <Resource name="jdbc/DataSourceCluster" auth="Container"
     factory="org.apache.tomcat.jdbc.pool.DataSourceFactory"
     type="javax.sql.DataSource"
-    initialSize="45" maxActive="45" minIdle="5" maxIdle="40" maxWait="10000"
+    initialSize="5" maxActive="10" minIdle="5" maxIdle="5" maxWait="10000"
     username="letterboxd" password="x44zpyj6"
     driverClassName="org.postgresql.Driver"
     url="jdbc:postgresql://db1/letterboxd"
