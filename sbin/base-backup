@@ -5,7 +5,7 @@ if [ $(id -un) != "postgres" ]; then
 	exit 1
 fi
 
-VERSION=9.3
+VERSION=9.5
 CLUSTER=main
 DATADIR="$VERSION/$CLUSTER"
 BACKUPDATADIR="$VERSION/$CLUSTER.bak"
@@ -50,7 +50,7 @@ if [ $? == 0 ]; then
 	echo "Base backup complete, restarting the cluster"
 	pg_ctlcluster $VERSION $CLUSTER start
 
-	echo "Check the /var/log/postgres/postgres-$VERSION-$CLUSTER.log file to see that replication has started successfully."
+	echo "Check the /var/log/postgresql/postgres-$VERSION-$CLUSTER.log file to see that replication has started successfully."
 	echo "Then delete $BACKUPDATADIR when you're satisfied."
 else
 	echo "Base backup failed, not restarting the cluster"
