@@ -11,7 +11,7 @@ ONLY_SPECIFIED_MODES=0
 DO_DOWNLOAD=0
 DO_UPDATE=0
 
-while getopts ":u:d:" opt; do
+while getopts ":ud" opt; do
   case $opt in
     u)
       ONLY_SPECIFIED_MODES=1
