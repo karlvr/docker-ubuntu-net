@@ -113,13 +113,13 @@
         <subsystem xmlns="urn:infinispan:server:core:8.2" default-cache-container="clustered82">
             <cache-container name="clustered82" default-cache="letterboxd.metadata" statistics="true">
                 <transport lock-timeout="60000"/>
-                <distributed-cache name="letterboxd.metadata" mode="SYNC" segments="20" owners="2" remote-timeout="30000" start="EAGER">
+                <distributed-cache name="letterboxd.metadata" mode="ASYNC" segments="20" owners="2" remote-timeout="30000" start="EAGER">
                     <locking acquire-timeout="30000" concurrency-level="1000" striping="false"/>
                     <transaction mode="NONE"/>
                     <state-transfer await-initial-transfer="false" timeout="240000" />
                     <expiration lifespan="86400000" />
                 </distributed-cache>
-                <distributed-cache name="letterboxd.nonce" mode="SYNC" segments="20" owners="2" remote-timeout="30000" start="EAGER">
+                <distributed-cache name="letterboxd.nonce" mode="ASYNC" segments="20" owners="2" remote-timeout="30000" start="EAGER">
                     <locking acquire-timeout="30000" concurrency-level="1000" striping="false"/>
                     <transaction mode="NONE"/>
                     <state-transfer await-initial-transfer="false" timeout="240000" />
