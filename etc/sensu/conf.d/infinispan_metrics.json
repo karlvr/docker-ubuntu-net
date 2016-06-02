@@ -1,0 +1,13 @@
+{
+    "checks": {
+        "infinispan_metrics": {
+            "type": "metric",
+            "command": "/opt/letterboxd/sensu/plugins/infinispan-metrics.sh -s stats.:::name:::.infinispan",
+            "standalone": true,
+            "interval": 60,
+            "occurrences": 1,
+            "refresh": 1800,
+            "handlers": ["relay"]
+        }
+    }
+}
