@@ -2,7 +2,7 @@
     "checks": {
         "supermodel_servo_metrics": {
             "type": "metric",
-            "command": "/opt/orac/sensu/plugins/supermodel/servo-metrics.sh -s stats.:::name:::.supermodel http://:::name:::.letterboxd.com",
+            "command": "/opt/orac/sensu/plugins/supermodel/servo-metrics.sh -s stats.:::name:::.supermodel http://:::letterboxd.hostname:::.letterboxd.com",
             "standalone": true,
             "interval": 60,
             "occurrences": 1,
@@ -11,7 +11,7 @@
         },
         "supermodel_jdbc_metrics": {
             "type": "metric",
-            "command": "/opt/orac/sensu/plugins/supermodel/jdbc-metrics.sh -s stats.:::name:::.tomcat.jdbc http://:::name:::.letterboxd.com",
+            "command": "/opt/orac/sensu/plugins/supermodel/jdbc-metrics.sh -s stats.:::name:::.tomcat.jdbc http://:::letterboxd.hostname:::.letterboxd.com",
             "standalone": true,
             "interval": 60,
             "occurrences": 1,
