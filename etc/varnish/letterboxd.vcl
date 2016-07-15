@@ -15,10 +15,10 @@ backend LB_app1 {
 #    .host_header = "letterboxd.com";
     .probe = {
         .url = "/s/health";
-        .timeout = 3s;
+        .timeout = 1s;
         .interval = 5s;
-        .window = 5;
-        .threshold = 3;
+        .window = 10;
+        .threshold = 10;
     }
 }
 
@@ -32,10 +32,10 @@ backend LB_app2 {
 #    .host_header = "letterboxd.com";
     .probe = {
         .url = "/s/health";
-        .timeout = 3s;
+        .timeout = 1s;
         .interval = 5s;
-        .window = 5;
-        .threshold = 3;
+        .window = 10;
+        .threshold = 10;
     }
 }
 
@@ -49,10 +49,10 @@ backend LB_app3 {
 #    .host_header = "letterboxd.com";
     .probe = {
         .url = "/s/health";
-        .timeout = 3s;
+        .timeout = 1s;
         .interval = 5s;
-        .window = 5;
-        .threshold = 3;
+        .window = 10;
+        .threshold = 10;
     }
 }
 
@@ -66,10 +66,10 @@ backend LB_app4 {
 #    .host_header = "letterboxd.com";
     .probe = {
         .url = "/s/health";
-        .timeout = 3s;
+        .timeout = 1s;
         .interval = 5s;
-        .window = 5;
-        .threshold = 3;
+        .window = 10;
+        .threshold = 10;
     }
 }
 
