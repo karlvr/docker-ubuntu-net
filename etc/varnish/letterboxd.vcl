@@ -18,7 +18,7 @@ backend LB_app1 {
         .timeout = 1s;
         .interval = 5s;
         .window = 10;
-        .threshold = 10;
+        .threshold = 8;
     }
 }
 
@@ -35,7 +35,7 @@ backend LB_app2 {
         .timeout = 1s;
         .interval = 5s;
         .window = 10;
-        .threshold = 10;
+        .threshold = 8;
     }
 }
 
@@ -52,7 +52,7 @@ backend LB_app3 {
         .timeout = 1s;
         .interval = 5s;
         .window = 10;
-        .threshold = 10;
+        .threshold = 8;
     }
 }
 
@@ -69,7 +69,7 @@ backend LB_app4 {
         .timeout = 1s;
         .interval = 5s;
         .window = 10;
-        .threshold = 10;
+        .threshold = 8;
     }
 }
 
