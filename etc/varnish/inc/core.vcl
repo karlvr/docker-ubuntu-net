@@ -513,6 +513,10 @@ Disallow: /"});
 
 sub vcl_backend_fetch {
   call fetch_tidy_bereq;
+
+  # Workaround for https://github.com/varnishcache/varnish-cache/issues/1878
+  # No need to have gzip between Varnish and our backend servers, we will gzip in Varnish instead in vcl_backend_response.
+  unset bereq.http.Accept-Encoding;
 }
 
 sub vcl_backend_response {
@@ -531,7 +535,7 @@ sub vcl_backend_response {
     set beresp.uncacheable = true;
   }
 
-  if (bereq.http.X-Supermodel-ESI == "YES") {
+  if (bereq.http.X-Supermodel-ESI == "YES" && beresp.http.Content-Type ~ "^text/html") {
     # KVR: We pass the X-Supermodel-ESI to the backend to let it know that we support ESI.
     set beresp.do_esi = true;
 
@@ -551,6 +555,12 @@ sub vcl_backend_response {
   }
 
   set beresp.http.X-Backend = beresp.backend.name;
+
+  # GZIP some responses to store in the cache, as we disable gzip in vcl_backend_fetch
+  if (beresp.http.Content-Type ~ "^text/" || beresp.http.Content-Type ~ "^application/xml" || beresp.http.Content-Type ~ "^application/xhtml" || 
+    beresp.http.Content-Type ~ "^application/x-javascript" || beresp.http.Content-Type ~ "^application/javascript") {
+    set beresp.do_gzip = true;
+  }
 
   if (bereq.http.X-Supermodel-Dont-Modify == "YES") {
     return (deliver);

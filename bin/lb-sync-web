@@ -10,26 +10,26 @@ fi
 
 for SERVER in $*
 do
-echo "Stopping application server..."
+echo "$SERVER: Stopping application server..."
 ssh $SERVER 'su - letterboxd -c "bin/shutdown.sh"'
 RESULT=$?
-echo "Waiting for shutdown..."
+echo "$SERVER: Waiting for shutdown..."
 sleep 60
 ssh $SERVER 'su - letterboxd -c "killall java"'
 sleep 10
 ssh $SERVER 'su - letterboxd -c "killall -9 java"'
 
-echo "Archiving current web root..."
+echo "$SERVER: Archiving current web root..."
 ssh $SERVER '/opt/letterboxd/sbin/lb-archive-web'
 
-echo "Syncing web root..."
+echo "$SERVER: Syncing web root..."
 rsync -av --stats --delete /srv/www/staging/web $SERVER:/srv/www/letterboxd
 rsync -av --stats --delete /srv/www/letterboxd/ssl $SERVER:/srv/www/letterboxd
 
-echo "Starting application server..."
+echo "$SERVER: Starting application server..."
 ssh $SERVER 'su - letterboxd -c "rm -rf work"'
 ssh $SERVER 'su - letterboxd -c "bin/startup.sh"'
-echo "Waiting for startup..."
+echo "$SERVER: Waiting for startup..."
 # We wait for startup as if we're rolling the deploy we want to
 # give the previous server time to get ready to serve
 sleep 300

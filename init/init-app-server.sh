@@ -55,8 +55,9 @@ sed -e "s/<Engine name=\"Catalina\" defaultHost=\"localhost\">/<Engine name=\"Ca
 
 # Asset configuration
 /bin/cp /opt/letterboxd/etc/tomcat/conf/letterboxd.xml /srv/tomcat/letterboxd/conf/Catalina/localhost/ROOT.xml
-/bin/sed -e "s|STATIC_URLS|$STATIC_URLS|" --in-place /srv/tomcat/letterboxd/conf/Catalina/localhost/ROOT.xml
+# NB. SECURE_STATIC_URLS is a prefix of STATIC_URLS so it must be replaced first!
 /bin/sed -e "s|SECURE_STATIC_URLS|$SECURE_STATIC_URLS|" --in-place /srv/tomcat/letterboxd/conf/Catalina/localhost/ROOT.xml
+/bin/sed -e "s|STATIC_URLS|$STATIC_URLS|" --in-place /srv/tomcat/letterboxd/conf/Catalina/localhost/ROOT.xml
 
 /bin/cp /opt/letterboxd/etc/tomcat/conf/staging.xml /srv/tomcat/staging/conf/Catalina/localhost/ROOT.xml
 
@@ -92,3 +93,7 @@ if [ -d /etc/apache2/conf-available ]; then
 EOF
 	/usr/sbin/a2enconf letterboxd
 fi
+
+# Sensu
+mkdir -p /etc/sensu/conf.d
+ln -s /opt/letterboxd/etc/sensu/conf.d/check_websites.json /etc/sensu/conf.d/check_websites.json

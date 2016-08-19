@@ -2,8 +2,12 @@
 #
 # GoWatchIt update script
 
-TMPDIRNAME=letterboxd-gowatchit
+if [ $(id -un) != "availability" ]; then
+	echo "This script must be run as availability user"
+	exit 1
+fi
 
+TMPDIRNAME=gowatchit
 . $(dirname $0)/../libexec/tool-base.sh
 
 JAVA_OPTS="-Xmx1024M"

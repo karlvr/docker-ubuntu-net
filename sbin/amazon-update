@@ -2,7 +2,12 @@
 #
 # Amazon update script
 
-TMPDIRNAME=letterboxd-amazon
+if [ $(id -un) != "availability" ]; then
+	echo "This script must be run as availability user"
+	exit 1
+fi
+
+TMPDIRNAME=amazon
 
 . $(dirname $0)/../libexec/tool-base.sh
 

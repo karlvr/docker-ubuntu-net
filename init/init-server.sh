@@ -8,6 +8,7 @@ fi
 
 source /opt/orac/init/functions.sh
 
+# Shorewall
 if [ ! -d /etc/shorewall ]; then
 	echo "Please run /opt/orac/init/init-security.sh script first"
 	exit 1
@@ -88,6 +89,33 @@ cat > /root/.ssh/id_rsa.pub <<EOF
 ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQC0CH+e9092sI23gTBbSjrki8qL2IKH0Cs2pbyyCN3YyaxsW6U8Qj7Qfpv7d99njfT9C7ce4JRVgqUO6tgoGvjlPEDWrRSdjWy+94/pTSUiysWLZ69dVFiCvv5GV9eT83GJsnJwqDm1vhPeXM4uFuMhqFMz0L4ktFs7LC2iachcKF2S41gj++AZxEF4VV6lX+m75oy2wUL99l7z1MBkTQfruxk7q6MRfZi2il9KO8/o6UjEVMLbzcGFUxwMqu26kaH4SgjLKDe8Ff0Jp0sH5WKmRzC7UCsA1JL0128mIKp6HtQDvY4jY0V3PZNHWbnR0H8oOyKzbWMY+72f5Olt7xmL root@app1
 EOF
 
-# Sensu
-mkdir -p /etc/sensu/conf.d
-ln -s /opt/letterboxd/etc/sensu/conf.d/check_websites.json /etc/sensu/conf.d/check_websites.json
+# Email
+sed -e "s/d490db2f9e4c43ae3ff5378e13a2676236f54e2a/cf421b0221a151d90b2998bb2d743a42f1bd99c4/" --in-place /etc/exim4/passwd.client
+if [ $? != 0 ]; then
+	cat <<EOF >>/etc/exim4/passwd.client
+*.sparkpostmail.com:SMTP_Injection:cf421b0221a151d90b2998bb2d743a42f1bd99c4
+EOF
+fi
+
+cat <<EOF >>/etc/exim4/smart_domains
+letterboxd.com: smtp.sparkpostmail.com::587
+EOF
+
+# Hosts
+cat <<EOF >>/etc/hosts
+199.195.197.28 db1.letterboxd.com
+199.189.108.4 db2.letterboxd.com
+199.195.199.60 app1.letterboxd.com
+199.195.199.116 app2.letterboxd.com
+107.182.234.196 app3.letterboxd.com
+173.244.209.162 app4.letterboxd.com
+10.100.10.1 db1.letterboxd.com db1
+10.100.10.2 db2.letterboxd.com db2
+10.100.1.1 app1.letterboxd.com app1
+10.100.1.2 app2.letterboxd.com app2
+10.100.1.3 app3.letterboxd.com app3
+10.100.1.4 app4.letterboxd.com app4
+EOF
+
+# DNS
+sed -e "s/127\.0\.0\.1/8.8.8.8/" --in-place /etc/resolv.conf

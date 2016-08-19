@@ -2,6 +2,14 @@
 #
 # iTunes Download and Update wrapper
 
+if [ $(id -un) != "availability" ]; then
+	echo "This script must be run as availability user"
+	exit 1
+fi
+
+TMPDIRNAME=itunes
+. $(dirname $0)/../libexec/tool-base.sh
+
 BASE_DIR=$(dirname $0)
 
 SKIP_DOWNLOAD=0
@@ -19,11 +27,6 @@ done
 
 shift $((OPTIND-1))
 
-if [ $(id -un) != "letterboxd" ]; then
-	echo "This script must be run as letterboxd"
-	exit 1
-fi
-
 if [ $SKIP_DOWNLOAD == 0 ]; then
 	# Download
 	$BASE_DIR/itunes-download
@@ -35,9 +38,7 @@ if [ $SKIP_DOWNLOAD == 0 ]; then
 fi
 
 # Update
-TMPDIR=/tmp/letterboxd-itunes
-
-$BASE_DIR/itunes-update "$TMPDIR"/index "$TMPDIR"/extract "$TMPDIR"/extract 2>&1 | tee "$TMPDIR"/update.log
+$BASE_DIR/itunes-update
 if [ $? != 0 ]; then
 	echo "*** iTunes update failed"
 	exit 1
