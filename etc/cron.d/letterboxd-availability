@@ -9,3 +9,6 @@
 
 # Amazon - 1st of the month 9:00
 0 9 1 * * availability /opt/letterboxd/sbin/amazon-update
+
+# GoWatchIt - Daily 16:00
+0 16 * * * availability /opt/letterboxd/sbin/gwi-download-update.sh
