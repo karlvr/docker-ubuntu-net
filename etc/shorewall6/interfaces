@@ -11,7 +11,5 @@
 #------------------------------------------------------------------------------
 # For information about entries in this file, type "man shorewall6-interfaces"
 ###############################################################################
-?FORMAT 2
-###############################################################################
-#ZONE	INTERFACE	OPTIONS
-net     $NET_IF     tcpflags
+#ZONE	INTERFACE	BROADCAST	OPTIONS
+net     $NET_IF     detect      tcpflags
