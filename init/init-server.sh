@@ -34,6 +34,31 @@ EOF
 	fi
 fi
 
+# Shorewall6
+if [ ! -d /etc/shorewall6 ]; then
+	echo "Please run /opt/orac/init/init-security.sh script first"
+	exit 1
+fi
+
+gate shorewall6 "Configuring shorewall6"
+if [ $? == 0 ]; then
+	rm -f /etc/shorewall6/interfaces
+	rm -f /etc/shorewall6/policy
+	rm -f /etc/shorewall6/rules
+	rm -f /etc/shorewall6/zones
+
+	ln -s /opt/letterboxd/etc/shorewall6/* /etc/shorewall6
+
+	grep VLAN_IF /etc/shorewall6/params
+	if [ $? != 0 ]; then
+		# Default contents of /etc/shorewall6/params, may not be correct on all servers
+		cat >> /etc/shorewall6/params <<EOF
+NET_IF=eth0
+VLAN_IF=eth1
+EOF
+	fi
+fi
+
 # Bash
 cat > /root/.bash_profile <<EOF
 #!/bin/bash

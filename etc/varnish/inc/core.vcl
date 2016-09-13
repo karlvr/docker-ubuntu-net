@@ -212,9 +212,12 @@ sub vcl_recv {
   } else if (req.http.X-Supermodel-File ~ "^/(s|ajax|email|register)/") {
     set req.http.X-Letterboxd-Cacheable = "NO";
     set req.http.X-Letterboxd-Cacheable-Reason = "System or Ajax page";
-  } else if (req.http.X-Supermodel-File ~ "^/(pro)/") {
+  } else if (req.http.X-Supermodel-File ~ "^/(pro)/?$") {
     set req.http.X-Letterboxd-Cacheable = "YES";
     set req.http.X-Letterboxd-Cacheable-Reason = "Purchase page";
+  } else if (req.http.X-Supermodel-File ~ "^/(pro)/") {
+    set req.http.X-Letterboxd-Cacheable = "NO";
+    set req.http.X-Letterboxd-Cacheable-Reason = "Purchase subpage";
   } else if (req.http.X-Supermodel-File ~ "^/(films|lists|people)/?$") {
     set req.http.X-Letterboxd-Cacheable = "YES";
     set req.http.X-Letterboxd-Cacheable-Reason = "Cacheable Main page";
