@@ -32,5 +32,5 @@ ssh $SERVER 'su - letterboxd -c "bin/startup.sh"'
 echo "$SERVER: Waiting for startup..."
 # We wait for startup as if we're rolling the deploy we want to
 # give the previous server time to get ready to serve
-sleep 300
+sleep 60
 done
