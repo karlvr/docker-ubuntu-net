@@ -25,17 +25,6 @@
     jdbcInterceptors="StatementCache(max=1000)"
     validationQuery="select 1" validationInterval="30000" testOnBorrow="true" />
 
-  <Resource name="jdbc/BatchDataSource" auth="Container"
-    factory="org.apache.tomcat.jdbc.pool.DataSourceFactory"
-    type="javax.sql.DataSource"
-    initialSize="20" maxActive="20" minIdle="5" maxIdle="20" maxWait="10000"
-    username="letterboxd" password="x44zpyj6"
-    driverClassName="org.postgresql.Driver"
-    url="jdbc:postgresql://localhost/letterboxd"
-    connectionProperties="disableColumnSanitiser=true"
-    jdbcInterceptors="StatementCache(max=1000)"
-    validationQuery="select 1" validationInterval="30000" testOnBorrow="true" />
-
   <Resource name="jdbc/DataSourceCluster" auth="Container"
     factory="org.apache.tomcat.jdbc.pool.DataSourceFactory"
     type="javax.sql.DataSource"
