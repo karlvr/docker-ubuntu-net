@@ -33,6 +33,7 @@ esac
 /bin/rm -f /etc/apache2/sites-available/letterboxd
 /bin/ln -s /opt/letterboxd/etc/apache2/sites-available/letterboxd.conf /etc/apache2/sites-available/letterboxd.conf
 /usr/sbin/a2ensite letterboxd
+/usr/sbin/a2dissite 000-default
 /usr/sbin/a2enmod ssl
 
 /bin/rm -f /etc/apache2/workers.properties
