@@ -1,0 +1,41 @@
+To install Varnish on Mac OS, there are some hoops to jump through.
+
+As at 2016-08-17, these are the steps required to run Varnish locally for Letterboxd:
+
+> brew install varnish
+
+This will install Varnish v4.1.0.  That's not the version we need, so:
+
+> brew edit varnish
+
+Change the version number on the source file from `https://repo.varnish-cache.org/source/varnish-4.1.0.tar.gz` to `https://repo.varnish-cache.org/source/varnish-4.1.2.tar.gz`
+
+Change the expected SHA from `sha256 "4a6ea08e30b62fbf25f884a65f0d8af42e9cc9d25bf70f45ae4417c4f1c99017"` to `sha256 "9728da944d28eb5be90e7ab6799c2c4c831ef4df5e5154537eb7f2e5d5e348c4"`
+
+> brew install varnish
+
+If it complains about the SHA hash, brew edit again and update the hash to what it said it needed then run brew install varnish again.
+
+You should now be able to go to the letterboxd-scripts root directory and run
+
+> bin/varnish-local.sh
+
+If it complains `Could not load VMOD geoip`
+
+> brew install geoip
+
+If it complains `Could not load VMOD digest`
+
+> brew install mhash
+
+Make sure you're running with
+
+> bin/varnish-local.sh
+
+It needs your sudo password to start up.
+
+Configure Charles to have a Reverse Proxy on port 8082 that connects to your tomcat server (grant.office.cactuslab.com, or whatever) on port 8080 (or whichever port you use) with "Preserve Host Header" off.
+This way, Varnish will make a request to Charles with the host name that you request Varnish with (localhost or whatever)
+and Charles will then make a request to the backend app server, passing in its own name, so it will serve the request.
+
+Make a request to `http://grant.office.cactuslab.com:8081/letterboxd/`
