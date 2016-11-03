@@ -24,7 +24,6 @@ ssh $SERVER '/opt/letterboxd/sbin/lb-archive-web'
 
 echo "$SERVER: Syncing web root..."
 rsync -av --stats --delete /srv/www/staging/web $SERVER:/srv/www/letterboxd
-rsync -av --stats --delete /srv/www/letterboxd/ssl $SERVER:/srv/www/letterboxd
 
 echo "$SERVER: Starting application server..."
 ssh $SERVER 'su - letterboxd -c "rm -rf work"'
