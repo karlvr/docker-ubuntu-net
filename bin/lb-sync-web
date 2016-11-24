@@ -44,6 +44,7 @@ rsync -av --stats --delete /srv/www/staging/web $SERVER:/srv/www/letterboxd
 if [ $SYNC_SEARCH_INDEX == 1 ]; then
 	echo "$SERVER: Syncing search index from staging..."
 	rsync -av --delete /srv/tomcat/staging/temp/sm_search_letterboxd/ $SERVER:/srv/tomcat/letterboxd/temp/sm_search_letterboxd/
+  ssh $SERVER 'chown letterboxd.letterboxd /srv/tomcat/letterboxd/temp/sm_search_letterboxd/ -R'
 fi
 
 echo "$SERVER: Starting application server..."
