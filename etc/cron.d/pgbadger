@@ -1,1 +1,1 @@
-0 2 * * * root /usr/bin/pgbadger -I -q /var/log/postgresql/postgresql-9.5-main.log /var/log/postgresql/postgresql-9.5-main.log.1 -O /srv/www/pgbadger/ -X --timezone $(date '+%:::z')
+0 2 * * * root /usr/bin/pgbadger -I -q /var/log/postgresql/postgresql-9.5-main.log /var/log/postgresql/postgresql-9.5-main.log.1 -O /srv/www/pgbadger/ -X --timezone $(date '+\%:::z')
