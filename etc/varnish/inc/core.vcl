@@ -89,6 +89,12 @@ sub vcl_recv {
 
     return(purge);
   }
+
+  /* Redirect to secure */
+  if (req.http.Host ~ "letterboxd\.com" && req.http.X-Forwarded-Proto !~ "https") {
+    set req.http.X-Redirect = "https://" + req.http.Host + req.url;
+    return (synth(751, ""));
+  }
    
   /* Backend server */
   set req.backend_hint = vdir.backend();
@@ -502,6 +508,10 @@ Disallow: /"});
     return (deliver);
   } else if (resp.status == 750) {
     set resp.status = 302;
+    set resp.http.Location = req.http.X-Redirect;
+    return (deliver);
+  } else if (resp.status == 751) {
+    set resp.status = 301;
     set resp.http.Location = req.http.X-Redirect;
     return (deliver);
   } else {
