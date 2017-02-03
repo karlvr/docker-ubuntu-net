@@ -1,16 +1,12 @@
 To install Varnish on Mac OS, there are some hoops to jump through.
 
-As at 2016-08-17, these are the steps required to run Varnish locally for Letterboxd:
-
-> brew install varnish
-
-This will install Varnish v4.1.0.  That's not the version we need, so:
+As at 2017-02-03, these are the steps required to run Varnish locally for Letterboxd:
 
 > brew edit varnish
 
-Change the version number on the source file from `https://repo.varnish-cache.org/source/varnish-4.1.0.tar.gz` to `https://repo.varnish-cache.org/source/varnish-4.1.2.tar.gz`
+Change the version number on the source file to `https://repo.varnish-cache.org/source/varnish-4.1.4.tar.gz`
 
-Change the expected SHA from `sha256 "4a6ea08e30b62fbf25f884a65f0d8af42e9cc9d25bf70f45ae4417c4f1c99017"` to `sha256 "9728da944d28eb5be90e7ab6799c2c4c831ef4df5e5154537eb7f2e5d5e348c4"`
+Change the expected SHA to `sha256 "44fdeb66fb27af9c18fde6123ef7b0038d6d263c7999a02a780ce4ea1a3965fc"`
 
 > brew install varnish
 
