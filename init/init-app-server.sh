@@ -33,6 +33,7 @@ esac
 /bin/rm -f /etc/apache2/sites-available/letterboxd
 /bin/ln -s /opt/letterboxd/etc/apache2/sites-available/letterboxd.conf /etc/apache2/sites-available/letterboxd.conf
 /usr/sbin/a2ensite letterboxd
+/usr/sbin/a2dissite 000-default
 /usr/sbin/a2enmod ssl
 
 /bin/rm -f /etc/apache2/workers.properties
@@ -52,6 +53,13 @@ sed -e "s/<Connector port=\"20001\" address=\"127.0.0.1\"/<Connector port=\"2000
 
 # JVM route
 sed -e "s/<Engine name=\"Catalina\" defaultHost=\"localhost\">/<Engine name=\"Catalina\" defaultHost=\"localhost\" jvmRoute=\"$(hostname)\">/" --in-place /srv/tomcat/letterboxd/conf/server.xml
+
+# RemoteIpValve
+# This must be at the Engine level so it sits above the ErrorReportValve so it is in effect when error pages are rendered.
+# Also it reflects characteristics of our deployment environment so it belongs in server.xml really!
+sed -e '/<\/Engine>/ i\
+<Valve className="org.apache.catalina.valves.RemoteIpValve" internalProxies="10\\.\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}|127\\.0\\.0\\.1" remoteIpHeader="X-Forwarded-For" protocolHeader="X-Forwarded-Proto" />' \
+	--in-place /srv/tomcat/letterboxd/conf/server.xml
 
 # Asset configuration
 /bin/cp /opt/letterboxd/etc/tomcat/conf/letterboxd.xml /srv/tomcat/letterboxd/conf/Catalina/localhost/ROOT.xml

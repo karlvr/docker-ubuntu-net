@@ -1,7 +1,23 @@
 #!/bin/bash
 # 
 # Syncs the Letterboxd staging web root to application servers
-# usage: sync-server.sh <server>+
+# usage: sync-server.sh [-s] <server>+
+
+SYNC_SEARCH_INDEX=0
+
+while getopts ":s" opt; do
+  case $opt in
+    s)
+      SYNC_SEARCH_INDEX=1
+      echo "Will sync staging server search index"
+      ;;
+    \?)
+      echo "Invalid option: -$OPTARG" >&2
+      ;;
+  esac
+done
+
+shift $((OPTIND-1))
 
 $(dirname $0)/lb-ssh-add
 if [ $? != 0 ]; then
@@ -24,7 +40,12 @@ ssh $SERVER '/opt/letterboxd/sbin/lb-archive-web'
 
 echo "$SERVER: Syncing web root..."
 rsync -av --stats --delete /srv/www/staging/web $SERVER:/srv/www/letterboxd
-rsync -av --stats --delete /srv/www/letterboxd/ssl $SERVER:/srv/www/letterboxd
+
+if [ $SYNC_SEARCH_INDEX == 1 ]; then
+	echo "$SERVER: Syncing search index from staging..."
+	rsync -av --delete /srv/tomcat/staging/temp/sm_search_letterboxd/ $SERVER:/srv/tomcat/letterboxd/temp/sm_search_letterboxd/
+  ssh $SERVER 'chown letterboxd.letterboxd /srv/tomcat/letterboxd/temp/sm_search_letterboxd/ -R'
+fi
 
 echo "$SERVER: Starting application server..."
 ssh $SERVER 'su - letterboxd -c "rm -rf work"'
@@ -32,5 +53,5 @@ ssh $SERVER 'su - letterboxd -c "bin/startup.sh"'
 echo "$SERVER: Waiting for startup..."
 # We wait for startup as if we're rolling the deploy we want to
 # give the previous server time to get ready to serve
-sleep 300
+sleep 60
 done

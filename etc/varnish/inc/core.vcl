@@ -89,6 +89,12 @@ sub vcl_recv {
 
     return(purge);
   }
+
+  /* Redirect to secure */
+  if (req.http.Host ~ "letterboxd\.com" && req.http.X-Forwarded-Proto !~ "https") {
+    set req.http.X-Redirect = "https://" + req.http.Host + req.url;
+    return (synth(751, ""));
+  }
    
   /* Backend server */
   set req.backend_hint = vdir.backend();
@@ -302,7 +308,7 @@ sub vcl_recv {
   } else if (req.http.X-Supermodel-File ~ "^/[a-zA-Z0-9_]{2,15}/(settings|watchlist|lists|activity)/?") {
     set req.http.X-Letterboxd-Cacheable = "YES";
     set req.http.X-Letterboxd-Cacheable-Reason = "Personal settings, watchlist, lists page, or activity";
-  } else if (req.http.X-Supermodel-File ~ "^/[a-zA-Z0-9_]{2,15}/film/[^/]+/(\d+/)?/(likes)/?") {
+  } else if (req.http.X-Supermodel-File ~ "^/[a-zA-Z0-9_]{2,15}/film/[^/]+/(\d+/)?(likes)(/friends)?/?$") {
     set req.http.X-Letterboxd-Cacheable = "NO";
     set req.http.X-Letterboxd-Cacheable-Reason = "Viewing subpage";
   } else if (req.http.X-Supermodel-File ~ "^/[a-zA-Z0-9_]{2,15}/film/[^/]+/(\d+/)?") {
@@ -502,6 +508,10 @@ Disallow: /"});
     return (deliver);
   } else if (resp.status == 750) {
     set resp.status = 302;
+    set resp.http.Location = req.http.X-Redirect;
+    return (deliver);
+  } else if (resp.status == 751) {
+    set resp.status = 301;
     set resp.http.Location = req.http.X-Redirect;
     return (deliver);
   } else {

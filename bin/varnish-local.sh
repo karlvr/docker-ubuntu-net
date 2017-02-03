@@ -9,7 +9,7 @@
 # again.
 
 VARNISHD=/usr/local/opt/varnish/sbin/varnishd
-VARNISH_VERSION=4.1.2
+VARNISH_VERSION=4.1.4
 
 if [ ! -x $VARNISHD ]; then
 	echo "FATAL: varnishd not found, is it installed?"

@@ -27,6 +27,8 @@ while getopts ":ud" opt; do
   esac
 done
 
+shift $((OPTIND-1))
+
 TMPDIRNAME=gwi
 . $(dirname $0)/../libexec/tool-base.sh
 
