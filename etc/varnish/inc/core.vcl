@@ -121,7 +121,7 @@ sub vcl_recv {
   unset req.http.X-Letterboxd-Cacheable-Reason;
 
   /* Geolocation - always add headers, and then remove if not allowed later */
-  set req.http.X-Supermodel-Country-Code = geoip.country_code("" + client.ip);
+  set req.http.X-Supermodel-Country-Code = geoip.country_code(req.http.X-Forwarded-For);
   unset req.http.X-Supermodel-City; # We're not using City at the moment
   #set req.http.X-Supermodel-City = geoip.city;
 
