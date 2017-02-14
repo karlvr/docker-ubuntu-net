@@ -230,6 +230,9 @@ sub vcl_recv {
   } else if (req.http.X-Supermodel-File ~ "^/(patrons|tags|charts|create-account|imdb|tmdb)/?") {
     set req.http.X-Letterboxd-Cacheable = "NO";
     set req.http.X-Letterboxd-Cacheable-Reason = "Main page";
+  } else if (req.http.X-Supermodel-File ~ "^/(watchlist)/?") {
+    set req.http.X-Letterboxd-Cacheable = "NO";
+    set req.http.X-Letterboxd-Cacheable-Reason = "Watchlist redirect page";
   } else if (req.http.X-Supermodel-File ~ "^/(films|genre|lists|reviews|people|reviewers)/") {
     set req.http.X-Letterboxd-Cacheable = "NO";
     set req.http.X-Letterboxd-Cacheable-Reason = "Popular films/lists/reviews/people";
