@@ -31,18 +31,49 @@ create table if not exists personanalysis (
 	whencreated timestamp not null,
 	latestsession date,
 	sessiondays int,
-	lifedays int,
-	lifedaysrecent int
+	lifedays int
 );
 
 create index if not exists personanalysis_countrycode_ix on personanalysis(countrycode);
+create index if not exists personanalysis_whencreated_ix on personanalysis(whencreated, lifedays);
 
 -- lb_retention function
 -- Returns the percentage of users who used the site for minlifedays or longer, who registered in the given period.
 create or replace function lb_retention(registered_start date, registered_end date, minlifedays int)
 returns numeric
-language sql
-as 'select count(*) * 100.0 / (select count(*) from personanalysis where whencreated >= registered_start and whencreated < registered_end) from personanalysis where lifedays >= minlifedays and whencreated >= registered_start and whencreated < registered_end';
+as
+$BODY$
+declare
+	people int;
+	result numeric;
+begin
+	select count(*) into people from personanalysis where whencreated >= registered_start and whencreated < registered_end;
+	IF people > 0 THEN
+		IF now()::date - registered_end < minlifedays THEN
+			return null;
+		END IF;
+		select count(*) * 100.0 / people into result from personanalysis where lifedays >= minlifedays and whencreated >= registered_start and whencreated < registered_end;
+		return result;
+	ELSE
+		return 0;
+	END IF;
+end
+$BODY$
+language plpgsql;
+
+create materialized view if not exists retention_by_period as
+select date,
+lb_retention(date, (date + '1 month'::interval)::date, 1) as days1,
+lb_retention(date, (date + '1 month'::interval)::date, 7) as days7,
+lb_retention(date, (date + '1 month'::interval)::date, 30) as days30,
+lb_retention(date, (date + '1 month'::interval)::date, 60) as days60,
+lb_retention(date, (date + '1 month'::interval)::date, 90) as days90,
+lb_retention(date, (date + '1 month'::interval)::date, 180) as days180,
+lb_retention(date, (date + '1 month'::interval)::date, 365) as days365,
+lb_retention(date, (date + '1 month'::interval)::date, 730) as days730,
+lb_retention(date, (date + '1 month'::interval)::date, 1095) as days1095
+from (select generate_series(date_trunc('month', (select min(whencreated) from personanalysis))::date, date_trunc('month', now()), '1 month'::interval)::date as date) as dates;
+
 
 --
 -- Update data
@@ -114,7 +145,8 @@ update personanalysis set latestsession = (select max(whenactivity) from persons
 update personanalysis set sessiondays = (select count(*) from personsessionactivity where person=personanalysis.person);
 
 -- Lifetime summary
-update personanalysis set lifedays = latestactivity - earliestactivity;
-update personanalysis set lifedaysrecent = lifedays where latestactivity >= now() - interval '1 year';
+update personanalysis set lifedays = greatest(latestactivity, latestsession::date) - whencreated::date;
+
+refresh materialized view retention_by_period;
 
 commit;
