@@ -31,8 +31,9 @@ case $(hostname) in
 esac
 
 /bin/rm -f /etc/apache2/sites-available/letterboxd
-/bin/ln -s /opt/letterboxd/etc/apache2/sites-available/letterboxd.conf /etc/apache2/sites-available/letterboxd.conf
+/bin/ln -s /opt/letterboxd/etc/apache2/sites-available/*.conf /etc/apache2/sites-available/
 /usr/sbin/a2ensite letterboxd
+/usr/sbin/a2ensite boxdit
 /usr/sbin/a2dissite 000-default
 /usr/sbin/a2enmod ssl
 
