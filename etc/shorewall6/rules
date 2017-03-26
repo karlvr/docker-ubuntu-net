@@ -40,6 +40,7 @@ SSH(ACCEPT)     $FW             net
 Web(ACCEPT)     $FW             net
 Mail(ACCEPT)    $FW             net
 NTP(ACCEPT)     $FW             net
+IMAP(ACCEPT)	$FW 			net:2403:7000:8000:600::b5	# Bounce tracking
 
 ACCEPT          $FW             net     tcp     hkp    # OpenPGP HTTP Keyserver needed for add-apt-repository
 ACCEPT          $FW             net     udp     hkp    # OpenPGP HTTP Keyserver needed for add-apt-repository
