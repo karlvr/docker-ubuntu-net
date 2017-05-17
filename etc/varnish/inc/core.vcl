@@ -255,7 +255,7 @@ sub vcl_recv {
     set req.http.X-Letterboxd-Cacheable = "YES";
     set req.http.X-Letterboxd-Cacheable-Reason = "The embed partner JS";
   } else if (req.http.X-Supermodel-File ~ "^/film/[^/]+/embed/") {
-    set req.http.X-Letterboxd-Cacheable = "NO";
+    set req.http.X-Letterboxd-Cacheable = "YES";
     set req.http.X-Letterboxd-Cacheable-Reason = "A film embed";
   } else if (req.http.X-Supermodel-File ~ "^/film/[^/]+/(mark-as-watched|mark-as-not-watched|rate|report|add-to-watchlist|remove-from-watchlist)/") {
     set req.http.X-Letterboxd-Cacheable = "NO";
