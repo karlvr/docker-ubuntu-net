@@ -36,6 +36,8 @@ ACCEPT          net:123.100.90.137      $FW     tcp     10001:10010 # YourKit Pr
 ## Database vlan access
 PostgreSQL(ACCEPT) $FW          vlan
 PostgreSQL(ACCEPT) vlan         $FW
+ACCEPT		$FW 	vlan	tcp 	6432 # pgbouncer
+ACCEPT		vlan	$FW 	tcp 	6432 # pgbouncer
 
 ## Tomcat vlan access
 ACCEPT     vlan     $FW     tcp     20001
