@@ -251,7 +251,7 @@ sub vcl_recv {
   } else if (req.http.X-Supermodel-File ~ "^/film/[^/]+/(image-125|image-150)/?$") {
     set req.http.X-Letterboxd-Cacheable = "YES";
     set req.http.X-Letterboxd-Cacheable-Reason = "A film poster container";
-  } else if (req.http.X-Supermodel-File ~ "^/js/c/embed-partner/") {
+  } else if (req.http.X-Supermodel-File ~ "^/js/c/embed-partner/?") {
     set req.http.X-Letterboxd-Cacheable = "YES";
     set req.http.X-Letterboxd-Cacheable-Reason = "The embed partner JS";
   } else if (req.http.X-Supermodel-File ~ "^/film/[^/]+/embed/") {
