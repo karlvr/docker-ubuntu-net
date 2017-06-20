@@ -374,7 +374,7 @@ sub vcl_recv {
        have the same as the parent request.
      */
     #set req.http.X-Supermodel-Generated-CSRF = randomstr(20, "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789");
-    set req.http.X-Supermodel-Generated-CSRF = regsub(digest.hash_sha1("" + client.ip + ":" + std.port(client.ip) + ":" + req.http.User-Agent), "^(.{20}).*$", "\1");
+    set req.http.X-Supermodel-Generated-CSRF = regsub(digest.hash_sha1("" + req.http.X-Forwarded-For + ":" + std.port(client.ip) + ":" + req.http.User-Agent), "^(.{20}).*$", "\1");
 
     /* Add it to the request cookie. Note that we may strip it below, but it's not there to not strip if appropriate.
        So we will _always_ have a CSRF cookie.
