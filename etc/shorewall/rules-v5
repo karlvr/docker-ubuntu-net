@@ -1,0 +1,82 @@
+#
+# Shorewall version 4.0 - Sample Rules File for one-interface configuration.
+# Copyright (C) 2006 by the Shorewall Team
+#
+# This library is free software; you can redistribute it and/or
+# modify it under the terms of the GNU Lesser General Public
+# License as published by the Free Software Foundation; either
+# version 2.1 of the License, or (at your option) any later version.
+#
+# See the file README.txt for further details.
+#------------------------------------------------------------------------------------------------------------
+# For information on entries in this file, type "man shorewall-rules"
+######################################################################################################################################################################################
+#ACTION		SOURCE		DEST		PROTO	DEST	SOURCE		ORIGINAL	RATE		USER/	MARK	CONNLIMIT	TIME         HEADERS         SWITCH
+#							PORT	PORT(S)		DEST		LIMIT		GROUP
+#SECTION ALL
+#SECTION ESTABLISHED
+#SECTION RELATED
+?SECTION NEW
+
+# Drop Ping from the "bad" net zone.. and prevent your log from being flooded..
+
+Ping(ACCEPT)	net		$FW
+
+# Permit all ICMP traffic FROM the firewall TO the net zone
+
+ACCEPT		$FW		net		icmp
+# Incoming
+SSH(ACCEPT)     net             $FW
+Web(ACCEPT)     net             $FW
+
+# Letterboxd
+ACCEPT          net:123.100.90.137      $FW     tcp     8888 # Charles Proxy 
+ACCEPT          net:123.100.90.137      $FW     tcp     10001:10010 # YourKit Profiler
+
+## Database vlan access
+PostgreSQL(ACCEPT) $FW          vlan
+PostgreSQL(ACCEPT) vlan         $FW
+
+## Tomcat vlan access
+ACCEPT     vlan     $FW     tcp     20001
+ACCEPT     $FW     vlan     tcp     20001
+
+## Infinispan vlan access
+ACCEPT		vlan	$FW 	tcp		7600:7700 # jgroups TCP
+ACCEPT		$FW 	vlan	tcp		7600:7700 # jgroups TCP
+ACCEPT		vlan	$FW 	tcp		57600:57700 # jgroups FD
+ACCEPT		$FW		vlan 	tcp		57600:57700 # jgroups FD
+ACCEPT		vlan 	$FW		tcp		11222	# hotrod
+ACCEPT		$FW 	vlan	tcp		11222	# hotrod
+ACCEPT		vlan	$FW 	tcp		7800:7830	# embedded jgroups TCP
+ACCEPT 		$FW 	vlan	tcp		7800:7830	# embedded jgroups TCP
+ACCEPT		vlan	$FW 	tcp		7900:7930	# embedded jgroups TCP
+ACCEPT 		$FW 	vlan	tcp		7900:7930	# embedded jgroups TCP
+ACCEPT		vlan	$FW 	tcp		57800:57900 # embedded jgroups FD
+ACCEPT		$FW		vlan 	tcp		57800:57900 # embedded jgroups FD
+ACCEPT		vlan	$FW 	tcp		58000:58100 # embedded jgroups FD
+ACCEPT		$FW		vlan 	tcp		58000:58100 # embedded jgroups FD
+
+## General vlan access
+SSH(ACCEPT)     vlan     $FW
+SSH(ACCEPT)     $FW     vlan
+Web(ACCEPT)     vlan     $FW
+Web(ACCEPT)     $FW     vlan
+Ping(ACCEPT)     vlan     $FW
+Ping(ACCEPT)     $FW     vlan
+ACCEPT     vlan     $FW     icmp
+ACCEPT     $FW     vlan     icmp
+
+# Orac monitoring
+ACCEPT          $FW             net:120.138.27.32     tcp     5671
+
+# Outgoing
+DNS(ACCEPT)     $FW             net
+SSH(ACCEPT)     $FW             net
+Web(ACCEPT)     $FW             net
+Mail(ACCEPT)    $FW             net
+NTP(ACCEPT)     $FW             net
+IMAP(ACCEPT)	$FW 			net:120.138.27.32	# Bounce tracking
+
+ACCEPT          $FW             net     tcp     hkp    # OpenPGP HTTP Keyserver needed for add-apt-repository
+ACCEPT          $FW             net     udp     hkp    # OpenPGP HTTP Keyserver needed for add-apt-repository
