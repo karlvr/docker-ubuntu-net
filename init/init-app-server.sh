@@ -116,21 +116,35 @@ sed -e 's/option\(\s\+\)httplog/#option\1httplog/' --in-place /etc/haproxy/hapro
 
 haproxy_version=$(haproxy -v | head -n 1 | awk '{print $3}')
 
+# Configuration notes:
+# https://cbonte.github.io/haproxy-dconv/1.7/configuration.html
+#
+# timeout needs to be higher than our query timeouts, otherwise haproxy will drop the connection
+# if we wait for longer than the timeout for the server to respond.
+#
+# The pgsql-check doesn't appear to work for me yet, so it's commented out. It isn't supported in haproxy 1.4 either.
+
 if [[ "$haproxy_version" =~ 1\.4 ]]; then
 	cat >> /etc/haproxy/haproxy.cfg <<EOF
+
 listen pgsql_pool 127.0.0.1:6432
     mode tcp
     balance roundrobin
+    timeout client 60m
+    timeout server 60m
     server db1 db1:6432 check
     server db2 db2:6432 check
 EOF
 else
 	cat >> /etc/haproxy/haproxy.cfg <<EOF
+
 listen pgsql_pool
     mode tcp
     bind 127.0.0.1:6432
     #option pgsql-check user letterboxd
     balance roundrobin
+    timeout client 60m
+    timeout server 60m
     server db1 db1:6432 check
     server db2 db2:6432 check
 EOF
