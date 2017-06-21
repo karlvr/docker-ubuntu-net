@@ -106,3 +106,34 @@ fi
 # Sensu
 mkdir -p /etc/sensu/conf.d
 ln -s /opt/letterboxd/etc/sensu/conf.d/check_websites.json /etc/sensu/conf.d/check_websites.json
+
+# haproxy
+apt-get install haproxy
+
+patch /etc/haproxy/haproxy.cfg <<EOF
+--- /etc/haproxy/haproxy.cfg.orig	2017-06-21 11:33:04.173014734 +1200
++++ /etc/haproxy/haproxy.cfg	2017-06-21 11:55:09.211258692 +1200
+@@ -8,8 +8,8 @@
+ 
+ defaults
+ 	log	global
+-	mode	http
+-	option	httplog
++#	mode	http
++#	option	httplog
+ 	option	dontlognull
+         contimeout 5000
+         clitimeout 50000
+EOF
+
+cat >> /etc/haproxy/haproxy.cfg <<EOF
+listen pgsql_pool 0.0.0.0:6432
+	mode tcp
+	#option pgsql-check user letterboxd
+	balance roundrobin
+	server db1 db1:6432 check
+	server db2 db2:6432 check
+EOF
+
+sed -e 's/ENABLED=0/ENABLED=1/' --in-place /etc/default/haproxy
+service haproxy start
