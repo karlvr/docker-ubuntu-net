@@ -1,15 +1,20 @@
 server {
-        listen  443 ssl http2 default_server;
-        listen  [::]:443 ssl http2 default_server; # IPv6 http://serverfault.com/questions/638367/do-you-need-separate-ipv4-and-ipv6-listen-directives-in-nginx
-        server_name     letterboxd.com *.letterboxd.com;
-        ssl_certificate /opt/letterboxd/etc/apache2/ssl/letterboxd.com/2016/server.pem;
-        ssl_certificate_key /opt/letterboxd/etc/apache2/ssl/letterboxd.com/2016/server.key;
+        listen  443 ssl http2;
+        listen  [::]:443 ssl http2;
+        server_name     boxd.it;
+        ssl_certificate /etc/letsencrypt/live/boxd.it/fullchain.pem;
+        ssl_certificate_key /etc/letsencrypt/live/boxd.it/privkey.pem;
 
         include /opt/letterboxd/etc/nginx/ssl.conf;
 
         access_log off;
 
         include /opt/letterboxd/etc/nginx/gzip.conf;
+
+        # Rewrite rules
+        rewrite ^/robots.txt /robots-direct.txt last;
+        rewrite ^/apple-app-site-association$ /apple-app-site-association.boxdit last;
+        rewrite ^/(.*)$      /s/boxd-it?code=$1 last;
 
         location / {
                 proxy_pass http://varnish;
