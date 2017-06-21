@@ -60,7 +60,7 @@ sed -e "s/<Engine name=\"Catalina\" defaultHost=\"localhost\">/<Engine name=\"Ca
 # Also it reflects characteristics of our deployment environment so it belongs in server.xml really!
 sed -e '/<\/Engine>/ i\
 <Valve className="org.apache.catalina.valves.RemoteIpValve" internalProxies="10\\.\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}|127\\.0\\.0\\.1" remoteIpHeader="X-Forwarded-For" protocolHeader="X-Forwarded-Proto" />' \
-	--in-place /srv/tomcat/letterboxd/conf/server.xml
+    --in-place /srv/tomcat/letterboxd/conf/server.xml
 
 # Asset configuration
 /bin/cp /opt/letterboxd/etc/tomcat/conf/letterboxd.xml /srv/tomcat/letterboxd/conf/Catalina/localhost/ROOT.xml
@@ -108,32 +108,40 @@ mkdir -p /etc/sensu/conf.d
 ln -s /opt/letterboxd/etc/sensu/conf.d/check_websites.json /etc/sensu/conf.d/check_websites.json
 
 # haproxy
-apt-get install haproxy
+apt-get install -y haproxy
+service haproxy stop
 
-patch /etc/haproxy/haproxy.cfg <<EOF
---- /etc/haproxy/haproxy.cfg.orig	2017-06-21 11:33:04.173014734 +1200
-+++ /etc/haproxy/haproxy.cfg	2017-06-21 11:55:09.211258692 +1200
-@@ -8,8 +8,8 @@
- 
- defaults
- 	log	global
--	mode	http
--	option	httplog
-+#	mode	http
-+#	option	httplog
- 	option	dontlognull
-         contimeout 5000
-         clitimeout 50000
+sed -e 's/mode\(\s\+\)http/#mode\1http/' --in-place /etc/haproxy/haproxy.cfg
+sed -e 's/option\(\s\+\)httplog/#option\1httplog/' --in-place /etc/haproxy/haproxy.cfg
+
+haproxy_version=$(haproxy -v | head -n 1 | awk '{print $3}')
+
+if [[ "$haproxy_version" =~ 1\.4 ]]; then
+	cat >> /etc/haproxy/haproxy.cfg <<EOF
+listen pgsql_pool 127.0.0.1:6432
+    mode tcp
+    balance roundrobin
+    server db1 db1:6432 check
+    server db2 db2:6432 check
 EOF
-
-cat >> /etc/haproxy/haproxy.cfg <<EOF
-listen pgsql_pool 0.0.0.0:6432
-	mode tcp
-	#option pgsql-check user letterboxd
-	balance roundrobin
-	server db1 db1:6432 check
-	server db2 db2:6432 check
+else
+	cat >> /etc/haproxy/haproxy.cfg <<EOF
+listen pgsql_pool
+    mode tcp
+    bind 127.0.0.1:6432
+    #option pgsql-check user letterboxd
+    balance roundrobin
+    server db1 db1:6432 check
+    server db2 db2:6432 check
 EOF
+fi
 
+# NB: the pgsql-check doesn't appear to work, at least not in front of pgbouncer
+
+# Ubuntu 14.04: need to enable service
 sed -e 's/ENABLED=0/ENABLED=1/' --in-place /etc/default/haproxy
+
 service haproxy start
+
+# Test haproxy with:
+# psql -h 127.0.0.1 -p 6432 letterboxd letterboxd
