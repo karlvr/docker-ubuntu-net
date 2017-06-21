@@ -1,0 +1,46 @@
+#
+# Shorewall6 version 4 - Sample Rules File for one-interface configuration.
+# Copyright (C) 2006,2008 by the Shorewall Team
+#
+# This library is free software; you can redistribute it and/or
+# modify it under the terms of the GNU Lesser General Public
+# License as published by the Free Software Foundation; either
+# version 2.1 of the License, or (at your option) any later version.
+#
+# See the file README.txt for further details.
+#------------------------------------------------------------------------------------------------------------
+# For information on entries in this file, type "man shorewall6-rules"
+######################################################################################################################################################################################################
+#ACTION		SOURCE		DEST		PROTO	DEST	SOURCE		ORIGINAL	RATE		USER/	MARK	CONNLIMIT	TIME		HEADERS		SWITCH		HELPER
+#							PORT	PORT(S)		DEST		LIMIT		GROUP
+#SECTION ALL
+#SECTION ESTABLISHED
+#SECTION RELATED
+?SECTION NEW
+
+# Drop packets in the INVALID state
+
+Invalid(DROP)  net    	        $FW		tcp
+
+# Drop Ping from the "bad" net zone.. and prevent your log from being flooded..
+
+Ping(ACCEPT)	net		$FW
+
+# Permit all ICMP traffic FROM the firewall TO the net zone
+
+ACCEPT		$FW		net		ipv6-icmp
+
+# Incoming
+SSH(ACCEPT)     net             $FW
+Web(ACCEPT)     net             $FW
+
+# Outgoing
+DNS(ACCEPT)     $FW             net
+SSH(ACCEPT)     $FW             net
+Web(ACCEPT)     $FW             net
+Mail(ACCEPT)    $FW             net
+NTP(ACCEPT)     $FW             net
+IMAP(ACCEPT)	$FW 			net:2403:7000:8000:600::b5	# Bounce tracking
+
+ACCEPT          $FW             net     tcp     hkp    # OpenPGP HTTP Keyserver needed for add-apt-repository
+ACCEPT          $FW             net     udp     hkp    # OpenPGP HTTP Keyserver needed for add-apt-repository
