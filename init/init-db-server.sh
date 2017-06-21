@@ -9,6 +9,8 @@ if [ ! -d /home/letterboxd ]; then
 	useradd -m -d /home/letterboxd -s /bin/bash letterboxd
 fi
 
+
+###############################################################################
 # pgbouncer
 apt-get install pgbouncer
 
@@ -106,7 +108,11 @@ EOF
 
 cat > /etc/pgbouncer/userlist.txt <<EOF
 "letterboxd" "x44zpyj6"
-"pgbouncer" "FDyLa4Sq"
 EOF
 
 service pgbouncer start
+
+# Check pgbouncer status:
+# su - postgres -c 'psql -p 6432 pgbouncer pgbouncer'
+# show stats;
+# show clients;
