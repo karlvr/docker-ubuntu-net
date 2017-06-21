@@ -3,31 +3,31 @@
 # Init application server
 
 if [ ! -d /opt/tomcat ]; then
-	echo "Please run /opt/orac/init/init-tomcat.sh first"
-	exit 1
+    echo "Please run /opt/orac/init/init-tomcat.sh first"
+    exit 1
 fi
 
 case $(hostname) in
-	app1)
-		STATIC_URLS="http://elephant.s1.ltrbxd.com http://psycho.s1.ltrbxd.com http://predator.s1.ltrbxd.com http://memento.s1.ltrbxd.com"
-		SECURE_STATIC_URLS="https://s1.ltrbxd.com"
-		;;
-	app2)
-		STATIC_URLS="http://bullitt.s2.ltrbxd.com http://up.s2.ltrbxd.com http://brick.s2.ltrbxd.com http://moon.s2.ltrbxd.com"
-		SECURE_STATIC_URLS="https://s2.ltrbxd.com"
-		;;
-	app3)
-		STATIC_URLS="http://tron.s3.ltrbxd.com http://solaris.s3.ltrbxd.com http://robocop.s3.ltrbxd.com http://notorious.s3.ltrbxd.com"
-		SECURE_STATIC_URLS="https://s3.ltrbxd.com"
-		;;
-	app4)
-		STATIC_URLS="http://commando.s4.ltrbxd.com http://alien.s4.ltrbxd.com http://drive.s4.ltrbxd.com http://wargames.s4.ltrbxd.com"
-		SECURE_STATIC_URLS="https://s4.ltrbxd.com"
-		;;
-	*)
-		echo "Unsupported hostname: $(hostname)"
-		exit 1
-		;;
+    app1)
+        STATIC_URLS="http://elephant.s1.ltrbxd.com http://psycho.s1.ltrbxd.com http://predator.s1.ltrbxd.com http://memento.s1.ltrbxd.com"
+        SECURE_STATIC_URLS="https://s1.ltrbxd.com"
+        ;;
+    app2)
+        STATIC_URLS="http://bullitt.s2.ltrbxd.com http://up.s2.ltrbxd.com http://brick.s2.ltrbxd.com http://moon.s2.ltrbxd.com"
+        SECURE_STATIC_URLS="https://s2.ltrbxd.com"
+        ;;
+    app3)
+        STATIC_URLS="http://tron.s3.ltrbxd.com http://solaris.s3.ltrbxd.com http://robocop.s3.ltrbxd.com http://notorious.s3.ltrbxd.com"
+        SECURE_STATIC_URLS="https://s3.ltrbxd.com"
+        ;;
+    app4)
+        STATIC_URLS="http://commando.s4.ltrbxd.com http://alien.s4.ltrbxd.com http://drive.s4.ltrbxd.com http://wargames.s4.ltrbxd.com"
+        SECURE_STATIC_URLS="https://s4.ltrbxd.com"
+        ;;
+    *)
+        echo "Unsupported hostname: $(hostname)"
+        exit 1
+        ;;
 esac
 
 /bin/rm -f /etc/apache2/sites-available/letterboxd
@@ -92,7 +92,7 @@ EOF
 
 # Apache
 if [ -d /etc/apache2/conf-available ]; then
-	cat > /etc/apache2/conf-available/letterboxd.conf <<EOF
+    cat > /etc/apache2/conf-available/letterboxd.conf <<EOF
 # Allow serving of Letterboxd bundled web content
 <Directory /opt/letterboxd/www/>
         Options Indexes FollowSymLinks
@@ -100,7 +100,7 @@ if [ -d /etc/apache2/conf-available ]; then
         Require all granted
 </Directory>
 EOF
-	/usr/sbin/a2enconf letterboxd
+    /usr/sbin/a2enconf letterboxd
 fi
 
 # Sensu
