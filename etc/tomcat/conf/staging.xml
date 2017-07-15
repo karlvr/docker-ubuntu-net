@@ -15,6 +15,31 @@
     type="javax.mail.Session" />
 
   <Resource name="jdbc/DataSource" auth="Container"
+    factory="com.zaxxer.hikari.HikariJNDIFactory" type="javax.sql.DataSource"
+    minimumIdle="5" maximumPoolSize="40" connectionTimeout="10000"
+    username="letterboxd" password="x44zpyj6"
+    dataSourceClassName="org.postgresql.ds.PGSimpleDataSource"
+    dataSource.url="jdbc:postgresql://127.0.0.1:6432/letterboxd"
+    dataSource.ssl="true"
+    dataSource.sslfactory="org.postgresql.ssl.NonValidatingFactory"
+    dataSource.disableColumnSanitiser="true"
+    jdbcInterceptors="StatementCache(max=1000);QueryTimeoutInterceptor(queryTimeout=60)"
+    closeMethod="close" />
+
+  <Resource name="jdbc/DataSourceCluster" auth="Container"
+    factory="com.zaxxer.hikari.HikariJNDIFactory" type="javax.sql.DataSource"
+    minimumIdle="5" maximumPoolSize="10" connectionTimeout="10000"
+    username="letterboxd" password="x44zpyj6"
+    dataSourceClassName="org.postgresql.ds.PGSimpleDataSource"
+    dataSource.url="jdbc:postgresql://127.0.0.1:6432/letterboxd"
+    dataSource.ssl="true"
+    dataSource.sslfactory="org.postgresql.ssl.NonValidatingFactory"
+    dataSource.disableColumnSanitiser="true"
+    jdbcInterceptors="StatementCache(max=1000);QueryTimeoutInterceptor(queryTimeout=60)"
+    closeMethod="close" />
+
+<!--
+  <Resource name="jdbc/DataSource" auth="Container"
     factory="org.apache.tomcat.jdbc.pool.DataSourceFactory"
     type="javax.sql.DataSource"
     initialSize="20" maxActive="20" minIdle="5" maxIdle="40" maxWait="10000"
@@ -35,4 +60,5 @@
     connectionProperties="ssl=true;sslfactory=org.postgresql.ssl.NonValidatingFactory;disableColumnSanitiser=true"
     jdbcInterceptors="StatementCache(max=1000);QueryTimeoutInterceptor(queryTimeout=60)"
     validationQuery="select 1" validationInterval="30000" testOnBorrow="true" />
+-->
 </Context>
