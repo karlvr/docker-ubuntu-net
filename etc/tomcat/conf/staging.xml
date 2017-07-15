@@ -24,7 +24,8 @@
     dataSource.sslfactory="org.postgresql.ssl.NonValidatingFactory"
     dataSource.disableColumnSanitiser="true"
     jdbcInterceptors="StatementCache(max=1000);QueryTimeoutInterceptor(queryTimeout=60)"
-    closeMethod="close" />
+    closeMethod="close"
+    registerMbeans="true" />
 
   <Resource name="jdbc/DataSourceCluster" auth="Container"
     factory="com.zaxxer.hikari.HikariJNDIFactory" type="javax.sql.DataSource"
@@ -36,7 +37,8 @@
     dataSource.sslfactory="org.postgresql.ssl.NonValidatingFactory"
     dataSource.disableColumnSanitiser="true"
     jdbcInterceptors="StatementCache(max=1000);QueryTimeoutInterceptor(queryTimeout=60)"
-    closeMethod="close" />
+    closeMethod="close"
+    registerMbeans="true" />
 
 <!--
   <Resource name="jdbc/DataSource" auth="Container"
