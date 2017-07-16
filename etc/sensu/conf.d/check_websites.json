@@ -2,7 +2,7 @@
   "checks": {
     "website_check_letterboxd_as_karl": {
       "handlers": ["default"],
-      "command": "/opt/orac/sensu/plugins/vendor/check-http.rb --url http://127.0.0.1/ -H Cookie:com.xk72.webparts.user=hc3OkB673G8qVouBEfuKsN587TCTCyru1X3GUcLcHEAOVH9V8j --query 'karl' --not-query 'gremlins in the control room'",
+      "command": "/opt/orac/sensu/plugins/vendor/check-http.rb --url http://127.0.0.1/ -H Cookie:com.xk72.webparts.user=hc3OkB673G8qVouBEfuKsN587TCTCyru1X3GUcLcHEAOVH9V8j --query 'karl' --negquery 'gremlins in the control room'",
       "standalone": true,
       "interval": 60,
       "occurrences": 5,
