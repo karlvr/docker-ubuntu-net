@@ -25,7 +25,7 @@
     dataSource.disableColumnSanitiser="true"
     jdbcInterceptors="StatementCache(max=1000);QueryTimeoutInterceptor(queryTimeout=60)"
     closeMethod="close"
-    registerMbeans="true" />
+    registerMbeans="true" poolName="jdbc_DataSource" />
 
   <Resource name="jdbc/DataSourceCluster" auth="Container"
     factory="com.zaxxer.hikari.HikariJNDIFactory" type="javax.sql.DataSource"
@@ -38,7 +38,7 @@
     dataSource.disableColumnSanitiser="true"
     jdbcInterceptors="StatementCache(max=1000);QueryTimeoutInterceptor(queryTimeout=60)"
     closeMethod="close"
-    registerMbeans="true" />
+    registerMbeans="true" poolName="jdbc_DataSourceCluster" />
 
 <!--
   <Resource name="jdbc/DataSource" auth="Container"
