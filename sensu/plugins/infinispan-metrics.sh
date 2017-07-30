@@ -55,6 +55,9 @@ handleOutput() {
 	done
 }
 
+# Tidy up any hung ispn-cli.sh commands
+ps x | grep java | grep infinispan | xargs kill -9
+
 OUTPUT=$(/opt/infinispan/bin/ispn-cli.sh --connect "container clustered82,ls")
 CACHE=all
 handleOutput
