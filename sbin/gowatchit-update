@@ -8,6 +8,7 @@ if [ $(id -un) != "availability" ]; then
 fi
 
 TMPDIRNAME=gowatchit
+. $(dirname $0)/../libexec/tool-base-options.sh
 . $(dirname $0)/../libexec/tool-base.sh
 
 JAVA_OPTS="-Xmx1024M"

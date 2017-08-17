@@ -7,6 +7,7 @@ if [ $(id -un) != "availability" ]; then
 fi
 
 TMPDIRNAME=itunes
+. $(dirname $0)/../libexec/tool-base-options.sh
 . $(dirname $0)/../libexec/tool-base.sh
 
 DOWNLOAD_DIR="$TMPDIR"/download

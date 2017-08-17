@@ -1,27 +1,8 @@
 #!/bin/bash
 
-DEV=0
-STAGING=0
-CONTINUE=0
-
-while getopts ":dsc" opt; do
-  case $opt in
-    d)
-      DEV=1
-      ;;
-    s)
-      STAGING=1
-      ;;
-    c)
-	  CONTINUE=1
-	  ;;
-    \?)
-      echo "Invalid option: -$OPTARG" >&2
-      ;;
-  esac
-done
-
-shift $((OPTIND-1))
+DEV=${DEV:-0}
+STAGING=${STAGING:-0}
+CONTINUE=${CONTINUE:-0}
 
 TMPDIR=
 

@@ -4,6 +4,7 @@
 
 TMPDIRNAME=letterboxd-tools
 
+. $(dirname $0)/../libexec/tool-base-options.sh
 . $(dirname $0)/../libexec/tool-base.sh
 
 TOOL_CLASS="$1"
