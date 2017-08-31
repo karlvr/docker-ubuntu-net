@@ -15,6 +15,8 @@ COPY docker-entrypoint.sh /usr/local/bin/
 RUN chown jboss /opt/jboss/infinispan-server/modules/org/postgresql/main/*
 USER jboss
 
+# Configuration layer is last as we change it frequently, and being last means only
+# one layer needs to be pushed, usually.
 COPY configuration/letterboxd.xml /opt/jboss/infinispan-server/standalone/configuration/
 
 EXPOSE 11224
