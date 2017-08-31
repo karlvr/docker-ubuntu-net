@@ -1,6 +1,6 @@
 <?xml version="1.0" ?>
 
-<server xmlns="urn:jboss:domain:4.0">
+<server xmlns="urn:jboss:domain:4.2">
     <extensions>
         <extension module="org.infinispan.extension"/>
         <extension module="org.infinispan.server.endpoint"/>
@@ -81,6 +81,24 @@
                 <suffix value=".yyyy-MM-dd"/>
                 <append value="true"/>
             </periodic-rotating-file-handler>
+            <size-rotating-file-handler name="HR-ACCESS-FILE" autoflush="true">
+                <formatter>
+                    <pattern-formatter pattern="(%t) %s%e%n"/>
+                </formatter>
+                <file relative-to="jboss.server.log.dir" path="hotrod-access.log"/>
+                <append value="true"/>
+                <rotate-size value="10M"/>
+                <max-backup-index value="10"/>
+            </size-rotating-file-handler>
+            <size-rotating-file-handler name="REST-ACCESS-FILE" autoflush="true">
+                <formatter>
+                    <pattern-formatter pattern="(%t) %s%e%n"/>
+                </formatter>
+                <file relative-to="jboss.server.log.dir" path="rest-access.log"/>
+                <append value="true"/>
+                <rotate-size value="10M"/>
+                <max-backup-index value="10"/>
+            </size-rotating-file-handler>
             <logger category="com.arjuna">
                 <level name="WARN"/>
             </logger>
@@ -89,6 +107,20 @@
             </logger>
             <logger category="sun.rmi">
                 <level name="WARN"/>
+            </logger>
+            <logger category="org.infinispan.server.hotrod.logging.HotRodAccessLoggingHandler">
+                <!-- Set to TRACE to enable access logging for hot rod or use DMR -->
+                <level name="INFO"/>
+                <handlers>
+                    <handler name="HR-ACCESS-FILE"/>
+                </handlers>
+            </logger>
+            <logger category="RestAccessLoggingHandler">
+                <!-- Set to TRACE to enable access logging for rest or use DMR -->
+                <level name="INFO"/>
+                <handlers>
+                    <handler name="REST-ACCESS-FILE"/>
+                </handlers>
             </logger>
             <root-logger>
                 <level name="INFO"/>
@@ -110,8 +142,8 @@
         <subsystem xmlns="urn:jboss:domain:datasources:4.0">
             <datasources />
         </subsystem>
-        <subsystem xmlns="urn:infinispan:server:core:8.2" default-cache-container="clustered82">
-            <cache-container name="clustered82" default-cache="letterboxd.metadata" statistics="true">
+        <subsystem xmlns="urn:infinispan:server:core:9.1" default-cache-container="clustered">
+            <cache-container name="clustered" default-cache="letterboxd.metadata" statistics="true">
                 <transport lock-timeout="60000"/>
                 <distributed-cache name="letterboxd.metadata" mode="ASYNC" segments="20" owners="2" remote-timeout="30000" start="EAGER">
                     <locking acquire-timeout="30000" concurrency-level="1000" striping="false"/>
@@ -127,19 +159,19 @@
                 </distributed-cache>
             </cache-container>
         </subsystem>
-        <subsystem xmlns="urn:infinispan:server:endpoint:8.0">
-            <hotrod-connector socket-binding="hotrod" cache-container="clustered82">
+        <subsystem xmlns="urn:infinispan:server:endpoint:9.0">
+            <hotrod-connector socket-binding="hotrod" cache-container="clustered">
                 <topology-state-transfer lazy-retrieval="false" lock-timeout="1000" replication-timeout="5000"/>
             </hotrod-connector>
             <!--
-            <memcached-connector socket-binding="memcached" cache-container="clustered82"/>
-            <rest-connector socket-binding="rest" cache-container="clustered82" security-domain="other" auth-method="BASIC"/>
-            <websocket-connector socket-binding="websocket" cache-container="clustered82"/>
+            <memcached-connector socket-binding="memcached" cache-container="clustered"/>
+            <rest-connector socket-binding="rest" cache-container="clustered" security-domain="other" auth-method="BASIC"/>
+            <websocket-connector socket-binding="websocket" cache-container="clustered"/>
             -->
         </subsystem>
-        <subsystem xmlns="urn:infinispan:server:jgroups:8.0">
-            <channels default="cluster82">
-                <channel name="cluster82"/>
+        <subsystem xmlns="urn:infinispan:server:jgroups:9.0">
+            <channels default="cluster91">
+                <channel name="cluster91"/>
             </channels>
             <stacks default="${jboss.default.jgroups.stack:udp}">
                 <stack name="udp">
@@ -155,7 +187,7 @@
                     <protocol type="pbcast.GMS"/>
                     <protocol type="UFC"/>
                     <protocol type="MFC"/>
-                    <protocol type="FRAG2"/>
+                    <protocol type="FRAG3"/>
                 </stack>
                 <stack name="tcp">
                     <transport type="TCP" socket-binding="jgroups-tcp"/>
@@ -176,7 +208,7 @@
                     <protocol type="pbcast.STABLE"/>
                     <protocol type="pbcast.GMS"/>
                     <protocol type="MFC"/>
-                    <protocol type="FRAG2"/>
+                    <protocol type="FRAG3"/>
                 </stack>
                 <stack name="tcp-gossip">
                     <transport type="TCP" socket-binding="jgroups-tcp"/>
@@ -194,50 +226,7 @@
                     <protocol type="pbcast.STABLE"/>
                     <protocol type="pbcast.GMS"/>
                     <protocol type="MFC"/>
-                    <protocol type="FRAG2"/>
-                </stack>
-                <stack name="s3">
-                    <transport type="TCP" socket-binding="jgroups-tcp"/>
-                    <protocol type="S3_PING">
-                        <property name="location">${jgroups.s3.bucket:}</property>
-                        <property name="access_key">${jgroups.s3.access_key:}</property>
-                        <property name="secret_access_key">${jgroups.s3.secret_access_key:}</property>
-                        <property name="pre_signed_delete_url">${jgroups.s3.pre_signed_delete_url:}</property>
-                        <property name="pre_signed_put_url">${jgroups.s3.pre_signed_put_url:}</property>
-                        <property name="prefix">${jgroups.s3.prefix:}</property>
-                    </protocol>
-                    <protocol type="MERGE3"/>
-                    <protocol type="FD_SOCK" socket-binding="jgroups-tcp-fd"/>
-                    <protocol type="FD_ALL"/>
-                    <protocol type="VERIFY_SUSPECT"/>
-                    <protocol type="pbcast.NAKACK2">
-                        <property name="use_mcast_xmit">false</property>
-                    </protocol>
-                    <protocol type="UNICAST3"/>
-                    <protocol type="pbcast.STABLE"/>
-                    <protocol type="pbcast.GMS"/>
-                    <protocol type="MFC"/>
-                    <protocol type="FRAG2"/>
-                </stack>
-                <stack name="google">
-                    <transport type="TCP" socket-binding="jgroups-tcp"/>
-                    <protocol type="GOOGLE_PING">
-                        <property name="location">${jgroups.google.bucket:}</property>
-                        <property name="access_key">${jgroups.google.access_key:}</property>
-                        <property name="secret_access_key">${jgroups.google.secret_access_key:}</property>
-                    </protocol>
-                    <protocol type="MERGE3"/>
-                    <protocol type="FD_SOCK" socket-binding="jgroups-tcp-fd"/>
-                    <protocol type="FD_ALL"/>
-                    <protocol type="VERIFY_SUSPECT"/>
-                    <protocol type="pbcast.NAKACK2">
-                        <property name="use_mcast_xmit">false</property>
-                    </protocol>
-                    <protocol type="UNICAST3"/>
-                    <protocol type="pbcast.STABLE"/>
-                    <protocol type="pbcast.GMS"/>
-                    <protocol type="MFC"/>
-                    <protocol type="FRAG2"/>
+                    <protocol type="FRAG3"/>
                 </stack>
             </stacks>
         </subsystem>
@@ -299,6 +288,14 @@
                         <policy-module code="Delegating" flag="required"/>
                     </authorization>
                 </security-domain>
+                <security-domain name="jaspitest" cache-type="default">
+                    <authentication-jaspi>
+                        <login-module-stack name="dummy">
+                            <login-module code="Dummy" flag="optional"/>
+                        </login-module-stack>
+                        <auth-module code="Dummy"/>
+                    </authentication-jaspi>
+                </security-domain>
             </security-domains>
         </subsystem>
         <subsystem xmlns="urn:jboss:domain:transactions:3.0">
@@ -324,6 +321,7 @@
         <socket-binding name="management-https" interface="management" port="${jboss.management.https.port:9993}"/>
         <socket-binding name="hotrod" port="11222"/>
         <socket-binding name="hotrod-internal" port="11223"/>
+        <socket-binding name="hotrod-multi-tenancy" port="11224"/>
         <socket-binding name="jgroups-mping" port="0" multicast-address="${jboss.default.multicast.address:234.99.54.14}" multicast-port="45700"/>
         <socket-binding name="jgroups-tcp" port="7600"/>
         <socket-binding name="jgroups-tcp-fd" port="57600"/>
@@ -331,6 +329,8 @@
         <socket-binding name="jgroups-udp-fd" port="54200"/>
         <socket-binding name="memcached" port="11211"/>
         <socket-binding name="rest" port="8080"/>
+        <socket-binding name="rest-multi-tenancy" port="8081"/>
+        <socket-binding name="rest-ssl" port="8443"/>
         <socket-binding name="txn-recovery-environment" port="4712"/>
         <socket-binding name="txn-status-manager" port="4713"/>
         <socket-binding name="websocket" port="8181"/>

@@ -58,15 +58,15 @@ handleOutput() {
 # Tidy up any hung ispn-cli.sh commands
 ps x | grep java | grep infinispan | awk '{print $1}' | xargs kill -9
 
-OUTPUT=$(/opt/infinispan/bin/ispn-cli.sh --connect "container clustered82,ls")
+OUTPUT=$(/opt/infinispan/bin/ispn-cli.sh --connect "container clustered,ls")
 CACHE=all
 handleOutput
 
-CACHES=$(/opt/infinispan/bin/ispn-cli.sh --connect "container clustered82,ls distributed-cache")
+CACHES=$(/opt/infinispan/bin/ispn-cli.sh --connect "container clustered,ls distributed-cache")
 
 for RAW_CACHE in $CACHES ; do
 	CACHE=${RAW_CACHE/./_}
-	OUTPUT=$(/opt/infinispan/bin/ispn-cli.sh --connect "container clustered82,ls distributed-cache=$RAW_CACHE")
+	OUTPUT=$(/opt/infinispan/bin/ispn-cli.sh --connect "container clustered,ls distributed-cache=$RAW_CACHE")
 	
 	handleOutput
 done
