@@ -206,6 +206,9 @@ sub vcl_recv {
   } else if (req.http.X-Supermodel-File ~ "^/(robots|humans)(-direct)?\.txt") {
     set req.http.X-Letterboxd-Cacheable = "YES";
     set req.http.X-Letterboxd-Cacheable-Reason = "robots.txt";
+  } else if (req.http.X-Supermodel-File ~ "^/(wp-login.php|\{\{id\}\})$") {
+    set req.http.X-Letterboxd-Cacheable = "YES";
+    set req.http.X-Letterboxd-Cacheable-Reason = "Wordpress vulnerability attempt";
   } else if (req.http.X-Supermodel-File ~ "^/admin/") {
     set req.http.X-Letterboxd-Cacheable = "NO";
     set req.http.X-Letterboxd-Cacheable-Reason = "Admin page";
