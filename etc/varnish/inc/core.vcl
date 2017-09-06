@@ -269,7 +269,7 @@ sub vcl_recv {
   } else if (req.http.X-Supermodel-File ~ "^/film/[^/]+/(mark-as-watched|mark-as-not-watched|rate|report|add-to-watchlist|remove-from-watchlist)/") {
     set req.http.X-Letterboxd-Cacheable = "NO";
     set req.http.X-Letterboxd-Cacheable-Reason = "A film action";
-  } else if (req.http.X-Supermodel-File ~ "^(/[a-zA-Z0-9_]{2,15}(/friends)?)?/film/[^/]+/(lists|fans|likes|watches|views|reviews|ratings|activity)?/?") {
+  } else if (req.http.X-Supermodel-File ~ "^(/[a-zA-Z0-9_]{2,15}(/friends)?)?/film(/[^/]+/(lists|fans|likes|watches|views|reviews|ratings|activity)?/?)?") {
     set req.http.X-Letterboxd-Cacheable = "NO";
     set req.http.X-Letterboxd-Cacheable-Reason = "Film subpage";
   } else if (req.http.X-Supermodel-File ~ "^/esi/") {
