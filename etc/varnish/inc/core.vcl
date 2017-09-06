@@ -203,6 +203,9 @@ sub vcl_recv {
   } else if (req.http.X-Supermodel-File ~ "^/apple-touch-icon.*\.png") {
     set req.http.X-Letterboxd-Cacheable = "YES";
     set req.http.X-Letterboxd-Cacheable-Reason = "Apple Touch Icon";
+  } else if (req.http.X-Supermodel-File ~ "^(/.well-known)?/apple-app-site-association.*") {
+    set req.http.X-Letterboxd-Cacheable = "YES";
+    set req.http.X-Letterboxd-Cacheable-Reason = "apple-app-site-association";
   } else if (req.http.X-Supermodel-File ~ "^/(robots|humans)(-direct)?\.txt") {
     set req.http.X-Letterboxd-Cacheable = "YES";
     set req.http.X-Letterboxd-Cacheable-Reason = "robots.txt";
