@@ -293,7 +293,7 @@ sub vcl_recv {
   } else if (req.http.X-Supermodel-File ~ "^/(about|legal|api-coming-soon|purpose)/") {
     set req.http.X-Letterboxd-Cacheable = "YES";
     set req.http.X-Letterboxd-Cacheable-Reason = "editorial page/section";
-  } else if (req.http.X-Supermodel-File ~ "^/(actor|director|studio|producer|writer|editor|cinematography|art-direction|visual-effects|composer|sound|costumes|make-up)/") {
+  } else if (req.http.X-Supermodel-File ~ "^/(actor|director|studio|producer|production-design|writer|editor|cinematography|art-direction|visual-effects|composer|sound|costumes|make-up)/") {
     set req.http.X-Letterboxd-Cacheable = "YES";
     set req.http.X-Letterboxd-Cacheable-Reason = "Basic film list";
   } else if (req.http.X-Supermodel-File ~ "^/[a-zA-Z0-9_]{2,15}/?$") {
