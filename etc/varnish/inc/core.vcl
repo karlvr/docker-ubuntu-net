@@ -200,7 +200,7 @@ sub vcl_recv {
   } else if (req.http.X-Supermodel-File ~ "^/favicon\.(ico|png)") {
     set req.http.X-Letterboxd-Cacheable = "YES";
     set req.http.X-Letterboxd-Cacheable-Reason = "Favicon";
-  } else if (req.http.X-Supermodel-File ~ "^/apple-touch-icon\.png") {
+  } else if (req.http.X-Supermodel-File ~ "^/apple-touch-icon.*\.png") {
     set req.http.X-Letterboxd-Cacheable = "YES";
     set req.http.X-Letterboxd-Cacheable-Reason = "Apple Touch Icon";
   } else if (req.http.X-Supermodel-File ~ "^/robots\.txt") {
