@@ -19,3 +19,4 @@ fw		firewall
 vlan	ipv4
 net		ipv4
 int 	ipv4
+dckr	ipv4

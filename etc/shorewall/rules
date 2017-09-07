@@ -82,3 +82,16 @@ IMAP(ACCEPT)	$FW 			net:120.138.27.32	# Bounce tracking
 
 ACCEPT          $FW             net     tcp     hkp    # OpenPGP HTTP Keyserver needed for add-apt-repository
 ACCEPT          $FW             net     udp     hkp    # OpenPGP HTTP Keyserver needed for add-apt-repository
+
+# Docker
+ACCEPT          dckr,$FW    dckr,$FW    tcp    2376:2377,7946
+ACCEPT          vlan,$FW    vlan,$FW    tcp    2376:2377,7946
+ACCEPT          dckr,$FW    $FW,dckr    udp    7946,4789
+ACCEPT          vlan,$FW    $FW,vlan    udp    7946,4789
+Ping(ACCEPT)	dckr 	    all
+Ping(ACCEPT)	$FW,vlan    dckr
+
+ACCEPT			$FW,vlan	dckr 		tcp 	11222,11224 # Infinispan
+PostgreSQL(ACCEPT)	dckr 	$FW,vlan
+DNS(ACCEPT)		dckr 		all
+Web(ACCEPT)     dckr        net
