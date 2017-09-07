@@ -188,6 +188,12 @@ sub vcl_recv {
   if (req.http.X-Supermodel-File ~ "^/(add/?)?$") {
     set req.http.X-Letterboxd-Cacheable = "YES";
     set req.http.X-Letterboxd-Cacheable-Reason = "Homepage";
+  } else if (req.http.X-Supermodel-File ~ "^/esi/") {
+    set req.http.X-Letterboxd-Cacheable = "YES";
+    set req.http.X-Letterboxd-Cacheable-Reason = "ESI";
+  } else if (req.http.X-Supermodel-File ~ "^/csi/") {
+    set req.http.X-Letterboxd-Cacheable = "YES";
+    set req.http.X-Letterboxd-Cacheable-Reason = "CSI";
   } else if (req.http.X-Supermodel-File ~ "^/(sign-in/?)?$") {
     set req.http.X-Letterboxd-Cacheable = "YES";
     set req.http.X-Letterboxd-Cacheable-Reason = "Sign-in page";
@@ -272,12 +278,6 @@ sub vcl_recv {
   } else if (req.http.X-Supermodel-File ~ "^(/[a-zA-Z0-9_]{2,15}(/friends)?)?/film(/[^/]+/(lists|fans|likes|watches|views|reviews|ratings|activity)?/?)?") {
     set req.http.X-Letterboxd-Cacheable = "NO";
     set req.http.X-Letterboxd-Cacheable-Reason = "Film subpage";
-  } else if (req.http.X-Supermodel-File ~ "^/esi/") {
-    set req.http.X-Letterboxd-Cacheable = "YES";
-    set req.http.X-Letterboxd-Cacheable-Reason = "ESI";
-  } else if (req.http.X-Supermodel-File ~ "^/csi/") {
-    set req.http.X-Letterboxd-Cacheable = "YES";
-    set req.http.X-Letterboxd-Cacheable-Reason = "CSI";
   } else if (req.http.X-Supermodel-File ~ "^/(search|welcome|pro|contact)/?$") {
     set req.http.X-Letterboxd-Cacheable = "YES";
     set req.http.X-Letterboxd-Cacheable-Reason = "search page, welcome page, pro page, contact page";
