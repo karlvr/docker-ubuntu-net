@@ -145,15 +145,15 @@
         <subsystem xmlns="urn:infinispan:server:core:9.1" default-cache-container="clustered">
             <cache-container name="clustered" default-cache="letterboxd.metadata" statistics="true">
                 <transport lock-timeout="60000"/>
-                <distributed-cache name="letterboxd.metadata" mode="ASYNC" segments="20" owners="2" remote-timeout="30000" start="EAGER">
+                <distributed-cache name="letterboxd.metadata" mode="SYNC" segments="20" owners="2" remote-timeout="30000" start="EAGER">
                     <locking acquire-timeout="30000" concurrency-level="1000" striping="false"/>
-                    <transaction mode="NONE"/>
+                    <transaction mode="NON_XA" locking="PESSIMISTIC" />
                     <state-transfer enabled="false" await-initial-transfer="false" timeout="240000" />
                     <expiration lifespan="86400000" />
                 </distributed-cache>
-                <distributed-cache name="letterboxd.nonce" mode="ASYNC" segments="20" owners="2" remote-timeout="30000" start="EAGER">
+                <distributed-cache name="letterboxd.nonce" mode="SYNC" segments="20" owners="2" remote-timeout="30000" start="EAGER">
                     <locking acquire-timeout="30000" concurrency-level="1000" striping="false"/>
-                    <transaction mode="NONE"/>
+                    <transaction mode="NON_XA" locking="PESSIMISTIC" />
                     <state-transfer enabled="false" await-initial-transfer="false" timeout="240000" />
                     <expiration lifespan="1800000" />
                 </distributed-cache>
@@ -170,8 +170,8 @@
             -->
         </subsystem>
         <subsystem xmlns="urn:infinispan:server:jgroups:9.0">
-            <channels default="cluster91">
-                <channel name="cluster91"/>
+            <channels default="cluster91a">
+                <channel name="cluster91a"/>
             </channels>
             <stacks default="${jboss.default.jgroups.stack:udp}">
                 <stack name="udp">
