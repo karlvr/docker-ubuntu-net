@@ -4,7 +4,7 @@
 # multiple IP addresses, so we need to choose the right one to bind to.
 
 for hostname in $(hostname -i) ; do
-	if [[ $hostname =~ ^172\. ]]; then
+	if [[ $hostname =~ ^10\.0\.0 ]]; then
 		echo $hostname
 		exit 0
 	fi

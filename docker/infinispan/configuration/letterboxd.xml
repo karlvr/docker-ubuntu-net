@@ -170,8 +170,8 @@
             -->
         </subsystem>
         <subsystem xmlns="urn:infinispan:server:jgroups:9.0">
-            <channels default="cluster91">
-                <channel name="cluster91"/>
+            <channels default="cluster91docker">
+                <channel name="cluster91docker"/>
             </channels>
             <stacks default="${jboss.default.jgroups.stack:udp}">
                 <stack name="udp">

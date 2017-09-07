@@ -19,4 +19,4 @@ USER jboss
 # one layer needs to be pushed, usually.
 COPY configuration/letterboxd.xml /opt/jboss/infinispan-server/standalone/configuration/
 
-EXPOSE 11224
+EXPOSE 11222 11224
