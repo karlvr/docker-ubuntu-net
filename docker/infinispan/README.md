@@ -3,37 +3,61 @@
 ## Staging
 
 We create an Infinispan service on our swarm, running on its own overlay network. We publish a hotrod port (11222) on 
-the swarm, which will connect to any of the running containers.
+the swarm, which will connect to any of the running containers, and each container also listens for hotrod on the
+overlay network.
 
 When a basic client connects to that port it happily communicates with whichever Infinispan node it finds. When a 
-topology aware client connects, it exchanges topology information and discovers the direct addresses of the nodes.
-That is why we place a router container in the overlay network, and set static routing rules to the overlay network
-on our network.
+topology aware client connects, it exchanges topology information and discovers the overlay network addresses of the nodes.
+
+We place a router container in the overlay network, and set static routing rules for the overlay network's subnet on
+the node, and on other systems on the network that need to communicate with Infinispan.
 
 ### Setup the Docker environment
 
-We need to create the overlay network that will run across the swarm (make a swarm if you haven't already).
+We need to create the overlay network that will run across the swarm (make a swarm if you haven't already). The network
+needs to be attachable, as we will run containers on it manually and as part of a service:
 
 ```
-docker network create -d overlay ubernet
+docker network create -d overlay --attachable ubernet
 ```
 
-Create a router on the server that will act as the router into the overlay network. Note that 10.0.0.0/24 is the subnet of ubernet (check that it is in your setup).
+Create a router on the server that will act as the router into the overlay network. Note that 10.0.0.0/24 is the subnet of `ubernet` (check that it is in your setup):
 
 ```
 docker run --privileged --network ubernet -d karlvr/router
 route add -net 10.0.0.0/24 gw <docker_gwbridge ip of the router container>
 ```
 
+Because the container has to run in privileged mode it isn't possible to make it a service.
+
 ### Create the Infinispan service
 
 ```
-docker service create --replicas 2 -p 11222:11224 --name infinispan --network ubernet --with-registry-auth karlvr/letterboxd-infinispan letterboxd -Djboss.default.jgroups.stack=tcp
+docker service create --replicas 2 -p 11222:11222 --name infinispan --network ubernet --with-registry-auth karlvr/letterboxd-infinispan letterboxd -Djboss.default.jgroups.stack=tcp
 ```
 
 ### Setup development machines to access staging
 
-We need a static route from development machines so that they can talk directly to the Infinispan containers.
+We need a static route from development machines so that they can talk directly to the Infinispan containers. We have added a classless static
+route to our DHCP server, so you don't need to do this manually on each machine!
+
+The DHCP configuration looks like:
+
+```
+option classless-routes code 121 = array of unsigned integer 8;
+
+subnet ... {
+	option classless-routes 24, 10, 0, 0, 10, 1, 10, 7;
+}
+```
+
+The above configuration defines the network as 10.0.0/24 and the router as 10.1.10.7.
+
+If you want to manually configure a host:
+
+```
+sudo route add -net 10.0.0.0 10.1.10.7 255.255.255.0
+```
 
 ## Development
 

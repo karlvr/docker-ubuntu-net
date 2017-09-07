@@ -8,8 +8,7 @@ COPY postgres-module.xml /opt/jboss/infinispan-server/modules/org/postgresql/mai
 RUN sed -e '/sasl/a         <module name="org.postgresql" />' --in-place /opt/jboss/infinispan-server/modules/system/layers/base/org/jgroups/main/module.xml
 
 USER root
-RUN yum install -y haproxy nc lsof
-COPY haproxy.cfg /etc/haproxy/
+RUN yum install -y net-tools nc lsof
 COPY find-hostname /usr/local/bin/
 COPY docker-entrypoint.sh /usr/local/bin/
 RUN chown jboss /opt/jboss/infinispan-server/modules/org/postgresql/main/*
@@ -19,4 +18,4 @@ USER jboss
 # one layer needs to be pushed, usually.
 COPY configuration/letterboxd.xml /opt/jboss/infinispan-server/standalone/configuration/
 
-EXPOSE 11222 11224
+EXPOSE 11222
