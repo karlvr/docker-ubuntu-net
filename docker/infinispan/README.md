@@ -63,8 +63,8 @@ sudo route add -net 10.0.0.0 10.1.10.7 255.255.255.0
 
 ```
 docker network create -d overlay --attachable --subnet=10.100.100.0/24 infinispan
-docker run --privileged --network infinispan -d --name router --restart always karlvr/router
-route add -net 10.0.0.0/24 gw <docker_gwbridge ip of the router container>
+docker run --privileged --network infinispan -d --name router --restart always --env internalSubnet=10.100.100.0/24 karlvr/router
+route add -net 10.100.100.0/24 gw <docker_gwbridge ip of the router container>
 
 docker service create --replicas 2 -p 11224:11222 --name infinispan --network infinispan --with-registry-auth karlvr/letterboxd-infinispan letterboxd -Djboss.default.jgroups.stack=tcp -Djboss.jgroups.jdbc_ping.username=letterboxd -Djboss.jgroups.jdbc_ping.password=x44zpyj6 -Djboss.jgroups.jdbc_ping.url=jdbc:postgresql://10.100.10.1/letterboxd
 ```
