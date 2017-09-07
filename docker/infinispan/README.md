@@ -24,7 +24,7 @@ docker network create -d overlay --attachable ubernet
 Create a router on the server that will act as the router into the overlay network. Note that 10.0.0.0/24 is the subnet of `ubernet` (check that it is in your setup):
 
 ```
-docker run --privileged --network ubernet -d karlvr/router
+docker run --privileged --network ubernet -d --name router --restart always karlvr/router
 route add -net 10.0.0.0/24 gw <docker_gwbridge ip of the router container>
 ```
 
