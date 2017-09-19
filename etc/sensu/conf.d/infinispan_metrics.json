@@ -4,11 +4,11 @@
             "type": "metric",
             "command": "/opt/letterboxd/sensu/plugins/infinispan-metrics.sh -s stats.:::name:::.infinispan",
             "standalone": true,
-            "interval": 60,
+            "interval": 600,
             "occurrences": 1,
             "refresh": 1800,
             "handlers": ["relay"],
-            "timeout": 60
+            "timeout": 600
         }
     }
 }
