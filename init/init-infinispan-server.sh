@@ -6,7 +6,7 @@ fi
 
 source /opt/orac/init/functions.sh
 
-INFINISPAN_VERSION=9.1.0.Final
+INFINISPAN_VERSION=9.1.1.Final
 
 gate infinispan "Installing Infinispan"
 if [ $? == 0 ]; then
