@@ -139,7 +139,7 @@ sub vcl_recv {
   }
 
   /* Remove context paths on dev */
-  if (req.http.host ~ "dev\.cactuslab\.com$" || req.http.host ~ "office\.cactuslab\.com" || req.http.host ~ "letterboxd-dev\.com(\:\d+)?$") {
+  if (req.http.host ~ "dev\.cactuslab\.com$" || req.http.host ~ "office\.cactuslab\.com") {
     set req.http.X-Supermodel-Path = regsub(req.url, "^/letterboxd/", "/");
     set req.http.X-Supermodel-Development = "YES";
   } else {
@@ -154,8 +154,6 @@ sub vcl_recv {
   /* Cookie domains */
   if (req.http.host ~ "letterboxd\.com$") {
     set req.http.X-Supermodel-Cookie-Domain = "letterboxd.com";
-  } else if (req.http.host ~ "letterboxd-dev\.com$") {
-    set req.http.X-Supermodel-Cookie-Domain = "letterboxd-dev.com";
   } else if (req.http.host ~ "^www\.") {
     set req.http.X-Supermodel-Cookie-Domain = regsub(regsub(req.http.host, "^www\.", ""), ":.*", "");
   } else {
