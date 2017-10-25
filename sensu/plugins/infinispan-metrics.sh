@@ -14,59 +14,61 @@ while getopts ":s:" opt; do
 done
 
 outputValue() {
-	NAME=$1
-	echo "$SCHEME.$NAME.$CACHE $VALUE $NOW"
+	local raw_cache="${1:-all}"
+	local name="$2"
+	local value="$3"
+
+	local now=$(date +%s)
+	local cache=${raw_cache/./_}
+
+	echo "$SCHEME.$name.$cache $value $now"
 }
 
-handleOutput() {
-	NOW=$(date +%s)
+readAttribute() {
+	local attribute="$1"
+	local raw_cache="${2:-}"
 
-	echo "$OUTPUT" | while read LINE ; do
-	 	KEY=$(echo $LINE | cut -d '=' -f 1)
-	 	VALUE=$(echo $LINE | cut -d '=' -f 2)
+	#echo "Reading attribute $attribute from cache $raw_cache" >&2
 
-	 	if [ "$KEY" == "number-of-entries" ]; then
-	 		outputValue "entries"
-	 	elif [ "$KEY" == "hit-ratio" ]; then
-	 		outputValue "hitRatio"
-	 	elif [ "$KEY" == "read-write-ratio" ]; then
-	 		outputValue "readWriteRatio"
-	 	elif [ "$KEY" == "evictions" ]; then
-	 		outputValue "evictions"
-	 	elif [ "$KEY" == "stores" ]; then
-	 		outputValue "stores"
-	 	elif [ "$KEY" == "time-since-reset" ]; then
-	 		outputValue "timeSinceReset"
-	 	elif [ "$KEY" == "time-since-start" ]; then
-	 		outputValue "timeSinceStart"
-	 	elif [ "$KEY" == "cluster-size" ]; then
-	 		outputValue "clusterSize"
-	 	elif [ "$KEY" == "number-of-locks-held" ]; then
-	 		outputValue "locksHeld"
-	 	elif [ "$KEY" == "replication-failures" ]; then
-	 		outputValue "replicationFailures"
-	 	elif [ "$KEY" == "success-ratio" ]; then
-	 		outputValue "replicationSuccessRatio"
-	 	elif [ "$KEY" == "cluster-hit-ratio" ]; then
-	 		outputValue "clusterHitRatio"
-	 	elif [ "$KEY" == "cluster-read-write-ratio" ]; then
-	 		outputValue "custerReadWriteRatio"
-	 	fi
-	done
+	if [ ! -z "$raw_cache" ]; then
+		value=$(/opt/infinispan/bin/ispn-cli.sh --connect "container $container,read-attribute --node=distributed-cache=$raw_cache $attribute")
+	else
+		value=$(/opt/infinispan/bin/ispn-cli.sh --connect "container $container,read-attribute $attribute")
+	fi
+
+	echo "$value" | sed 's/L$//'
+}
+
+outputValues() {
+	local raw_cache="$1"
+
+	outputValue "$raw_cache" "entries" "$(readAttribute number-of-entries "$raw_cache")" "$now"
+	outputValue "$raw_cache" "hitRatio" "$(readAttribute hit-ratio "$raw_cache")" "$now"
+	outputValue "$raw_cache" "readWriteRatio" "$(readAttribute read-write-ratio "$raw_cache")" "$now"
+	outputValue "$raw_cache" "evictions" "$(readAttribute evictions "$raw_cache")" "$now"
+	outputValue "$raw_cache" "stores" "$(readAttribute stores "$raw_cache")" "$now"
+	outputValue "$raw_cache" "timeSinceReset" "$(readAttribute time-since-reset "$raw_cache")" "$now"
+	outputValue "$raw_cache" "timeSinceStart" "$(readAttribute time-since-start "$raw_cache")" "$now"
+	if [ -z "$raw_cache" ]; then
+		outputValue "$raw_cache" "clusterSize" "$(readAttribute cluster-size "$raw_cache")" "$now"
+	else
+		outputValue "$raw_cache" "locksHeld" "$(readAttribute number-of-locks-held "$raw_cache")" "$now"
+		outputValue "$raw_cache" "replicationFailures" "$(readAttribute replication-failures "$raw_cache")" "$now"
+		outputValue "$raw_cache" "replicationSuccessRatio" "$(readAttribute success-ratio "$raw_cache")" "$now"
+		#outputValue "$raw_cache" "clusterHitRatio" "$(readAttribute cluster-hit-ratio "$raw_cache")" "$now"
+		#outputValue "$raw_cache" "custerReadWriteRatio" "$(readAttribute cluster-read-write-ratio "$raw_cache")" "$now"
+	fi
 }
 
 # Tidy up any hung ispn-cli.sh commands
-ps x | grep java | grep infinispan | awk '{print $1}' | xargs kill -9
+#ps x | grep java | grep infinispan | awk '{print $1}' | xargs kill -9
 
-OUTPUT=$(/opt/infinispan/bin/ispn-cli.sh --connect "container clustered,ls")
-CACHE=all
-handleOutput
+container=clustered
 
-CACHES=$(/opt/infinispan/bin/ispn-cli.sh --connect "container clustered,ls distributed-cache")
+outputValues
 
-for RAW_CACHE in $CACHES ; do
-	CACHE=${RAW_CACHE/./_}
-	OUTPUT=$(/opt/infinispan/bin/ispn-cli.sh --connect "container clustered,ls distributed-cache=$RAW_CACHE")
-	
-	handleOutput
+caches=$(/opt/infinispan/bin/ispn-cli.sh --connect "container clustered,ls distributed-cache")
+
+for raw_cache in $caches ; do
+	outputValues "$raw_cache"
 done
