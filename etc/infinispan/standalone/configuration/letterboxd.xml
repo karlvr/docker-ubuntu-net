@@ -150,6 +150,7 @@
                     <transaction mode="NON_XA" locking="PESSIMISTIC" />
                     <state-transfer enabled="true" await-initial-transfer="false" timeout="1200000" />
                     <expiration lifespan="86400000" />
+                    <memory><object size="20000000" /></memory>
                 </distributed-cache>
                 <distributed-cache name="letterboxd.nonce" mode="SYNC" segments="20" owners="2" remote-timeout="30000" start="EAGER">
                     <locking acquire-timeout="30000" concurrency-level="1000" striping="false"/>
