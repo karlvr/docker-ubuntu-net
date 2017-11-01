@@ -30,6 +30,18 @@ route add -net 10.0.0.0/24 gw <docker_gwbridge ip of the router container>
 
 Because the container has to run in privileged mode it isn't possible to make it a service.
 
+### Shorewall
+
+On each server hosting Docker, we need to setup masquerading so that the private container network can access external resources.
+
+Add the following to `/etc/shorewall/masq`:
+
+```
+p2p1	172.18.0.0/12
+```
+
+(Replace `172.18.0.0/12` with whatever the network on `docker_gwbridge` is: `docker network inspect docker_gwbridge`)
+
 ### Create the Infinispan service
 
 ```
@@ -133,6 +145,12 @@ If the image has changed, and you want to update the image:
 
 ```
 docker service update --image karlvr/letterboxd-infinispan --with-registry-auth infinispan
+```
+
+Just restart the service:
+
+```
+docker service update --force infinispan
 ```
 
 Delete the service:
