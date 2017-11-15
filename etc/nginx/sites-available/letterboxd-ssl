@@ -2,8 +2,8 @@ server {
         listen  443 ssl http2 default_server;
         listen  [::]:443 ssl http2 default_server; # IPv6 http://serverfault.com/questions/638367/do-you-need-separate-ipv4-and-ipv6-listen-directives-in-nginx
         server_name     letterboxd.com *.letterboxd.com;
-        ssl_certificate /opt/letterboxd/etc/apache2/ssl/letterboxd.com/2016/server.pem;
-        ssl_certificate_key /opt/letterboxd/etc/apache2/ssl/letterboxd.com/2016/server.key;
+        ssl_certificate /opt/letterboxd/etc/ssl/letterboxd.com/2017/server.pem;
+        ssl_certificate_key /opt/letterboxd/etc/ssl/letterboxd.com/2017/server.key;
 
         include /opt/letterboxd/etc/nginx/ssl.conf;
 
