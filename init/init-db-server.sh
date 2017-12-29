@@ -9,6 +9,32 @@ if [ ! -d /home/letterboxd ]; then
 	useradd -m -d /home/letterboxd -s /bin/bash letterboxd
 fi
 
+###############################################################################
+# performance
+
+# dirty_background_bytes: https://blog.2ndquadrant.com/basics-of-tuning-checkpoints/
+#   and https://github.com/grayhemp/pgcookbook/blob/master/database_server_configuration.md
+#   and https://lonesysadmin.net/2013/12/22/better-linux-disk-caching-performance-vm-dirty_ratio/
+
+# hugepages: https://www.postgresql.org/docs/9.5/static/kernel-resources.html
+#   4350 comes from production database server:
+#     grep ^VmPeak /proc/5210/status
+#     VmPeak:	 8845284 kB
+#     grep ^Hugepagesize /proc/meminfo
+#     Hugepagesize:       2048 kB
+#   8845284 / 2048 = 4319 (rounded up to 4350)
+
+# kernel scheduler: https://www.postgresql.org/message-id/50E4AAB1.9040902@optionshouse.com
+#   and https://www.percona.com/live/plam16/sites/default/files/slides/pl_2016_kosmodemiansky_0.pdf
+
+cat > /etc/sysctl.d/99-letterboxd-postgres.conf <<EOF
+vm.dirty_background_bytes=8388608
+vm.nr_hugepages=4350
+vm.hugetlb_shm_group=$(id -g postgres)
+kernel.sched_migration_cost_ns=5000000
+kernel.sched_autogroup_enabled=0
+EOF
+
 
 ###############################################################################
 # pgbouncer
