@@ -1,0 +1,14 @@
+{
+    "checks": {
+        "varnish_metrics": {
+            "type": "metric",
+            "command": "/opt/letterboxd/sensu/plugins/varnish-metrics.sh -s stats.:::name:::.varnish",
+            "standalone": true,
+            "interval": 60,
+            "occurrences": 1,
+            "refresh": 1800,
+            "handlers": ["relay"],
+            "timeout": 600
+        }
+    }
+}
