@@ -1,6 +1,6 @@
 {
     "checks": {
-        "varnish_metrics": {
+        "varnish_metrics_letterboxd": {
             "type": "metric",
             "command": "/opt/letterboxd/sensu/plugins/varnish-metrics.sh -s stats.:::name:::.varnish",
             "standalone": true,
