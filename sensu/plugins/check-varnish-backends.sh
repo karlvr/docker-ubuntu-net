@@ -21,7 +21,9 @@ if [ $? != 0 ]; then
 fi
 
 BACKENDS=$(echo "$OUTPUT" | wc -l)
-HEALTHY_BACKENDS=$(echo "$OUTPUT" | grep Healthy | wc -l)
+# Probes outputs "Healthy" and if an admin has manually set the backend to sick you get
+# both the probe and the admin state, so our algorithm is to insist on a healthy and no sicks.
+HEALTHY_BACKENDS=$(echo "$OUTPUT" | grep -i Healthy | grep -v -i sick | wc -l)
 
 if [ $HEALTHY_BACKENDS == 0 ]; then
 	echo "$NAME CRITICAL: No healthy backends"
