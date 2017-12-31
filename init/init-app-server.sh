@@ -76,7 +76,11 @@ cat <<EOF > /srv/tomcat/letterboxd/.bash_profile
 # NB: this file is automatically created by the init-app-server.sh script
 
 export JAVA_MAX_HEAP=10G
-export JAVA_OPTS="-Xms5G -XX:ReservedCodeCacheSize=300M"
+# ReservedCodeCacheSize is increased as we see these log entries:
+#   Java HotSpot(TM) 64-Bit Server VM warning: CodeCache is full. Compiler has been disabled.
+#   Java HotSpot(TM) 64-Bit Server VM warning: Try increasing the code cache size using -XX:ReservedCodeCacheSize=
+# We first increased it to 300M but we still saw issues, so now increased to 500M (1/1/2018)
+export JAVA_OPTS="-Xms5G -XX:ReservedCodeCacheSize=500M"
 
 # We need to give jgroups a hint as to which interface to bind to, as we have multiple
 # LINK_LOCAL interfaces when we also have Docker running.
