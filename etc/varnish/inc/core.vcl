@@ -14,9 +14,10 @@ include "inc/custom.vcl";
 include "inc/synthetic.vcl";
 
 acl debug {
-  "123.100.90.137";
+  "219.89.194.145";
   "121.99.27.111";
   "127.0.0.1";
+  "10.0.0.0"/8;
 }
 
 acl purge {
@@ -26,7 +27,7 @@ acl purge {
   "107.182.234.196";
   "173.244.209.162";
   "10.0.0.0"/8;
-  "123.100.90.137";
+  "219.89.194.145";
 }
 
 acl upstream_proxy {
@@ -121,7 +122,7 @@ sub vcl_recv {
   unset req.http.X-Letterboxd-Cacheable-Reason;
 
   /* Geolocation - always add headers, and then remove if not allowed later */
-  set req.http.X-Supermodel-Country-Code = geoip.country_code("" + client.ip);
+  set req.http.X-Supermodel-Country-Code = geoip.country_code(req.http.X-Forwarded-For);
   unset req.http.X-Supermodel-City; # We're not using City at the moment
   #set req.http.X-Supermodel-City = geoip.city;
 
@@ -139,7 +140,7 @@ sub vcl_recv {
   }
 
   /* Remove context paths on dev */
-  if (req.http.host ~ "dev\.cactuslab\.com$" || req.http.host ~ "office\.cactuslab\.com" || req.http.host ~ "letterboxd-dev\.com(\:\d+)?$") {
+  if (req.http.host ~ "dev\.cactuslab\.com$" || req.http.host ~ "office\.cactuslab\.com") {
     set req.http.X-Supermodel-Path = regsub(req.url, "^/letterboxd/", "/");
     set req.http.X-Supermodel-Development = "YES";
   } else {
@@ -154,8 +155,6 @@ sub vcl_recv {
   /* Cookie domains */
   if (req.http.host ~ "letterboxd\.com$") {
     set req.http.X-Supermodel-Cookie-Domain = "letterboxd.com";
-  } else if (req.http.host ~ "letterboxd-dev\.com$") {
-    set req.http.X-Supermodel-Cookie-Domain = "letterboxd-dev.com";
   } else if (req.http.host ~ "^www\.") {
     set req.http.X-Supermodel-Cookie-Domain = regsub(regsub(req.http.host, "^www\.", ""), ":.*", "");
   } else {
@@ -188,6 +187,12 @@ sub vcl_recv {
   if (req.http.X-Supermodel-File ~ "^/(add/?)?$") {
     set req.http.X-Letterboxd-Cacheable = "YES";
     set req.http.X-Letterboxd-Cacheable-Reason = "Homepage";
+  } else if (req.http.X-Supermodel-File ~ "^/esi/") {
+    set req.http.X-Letterboxd-Cacheable = "YES";
+    set req.http.X-Letterboxd-Cacheable-Reason = "ESI";
+  } else if (req.http.X-Supermodel-File ~ "^/csi/") {
+    set req.http.X-Letterboxd-Cacheable = "YES";
+    set req.http.X-Letterboxd-Cacheable-Reason = "CSI";
   } else if (req.http.X-Supermodel-File ~ "^/(sign-in/?)?$") {
     set req.http.X-Letterboxd-Cacheable = "YES";
     set req.http.X-Letterboxd-Cacheable-Reason = "Sign-in page";
@@ -200,12 +205,18 @@ sub vcl_recv {
   } else if (req.http.X-Supermodel-File ~ "^/favicon\.(ico|png)") {
     set req.http.X-Letterboxd-Cacheable = "YES";
     set req.http.X-Letterboxd-Cacheable-Reason = "Favicon";
-  } else if (req.http.X-Supermodel-File ~ "^/apple-touch-icon\.png") {
+  } else if (req.http.X-Supermodel-File ~ "^/apple-touch-icon.*\.png") {
     set req.http.X-Letterboxd-Cacheable = "YES";
     set req.http.X-Letterboxd-Cacheable-Reason = "Apple Touch Icon";
-  } else if (req.http.X-Supermodel-File ~ "^/robots\.txt") {
+  } else if (req.http.X-Supermodel-File ~ "^(/.well-known)?/apple-app-site-association.*") {
+    set req.http.X-Letterboxd-Cacheable = "YES";
+    set req.http.X-Letterboxd-Cacheable-Reason = "apple-app-site-association";
+  } else if (req.http.X-Supermodel-File ~ "^/(robots|humans)(-direct)?\.txt") {
     set req.http.X-Letterboxd-Cacheable = "YES";
     set req.http.X-Letterboxd-Cacheable-Reason = "robots.txt";
+  } else if (req.http.X-Supermodel-File ~ "^/(wp-login.php|\{\{id\}\})$") {
+    set req.http.X-Letterboxd-Cacheable = "YES";
+    set req.http.X-Letterboxd-Cacheable-Reason = "Wordpress vulnerability attempt";
   } else if (req.http.X-Supermodel-File ~ "^/admin/") {
     set req.http.X-Letterboxd-Cacheable = "NO";
     set req.http.X-Letterboxd-Cacheable-Reason = "Admin page";
@@ -224,17 +235,23 @@ sub vcl_recv {
   } else if (req.http.X-Supermodel-File ~ "^/(pro)/") {
     set req.http.X-Letterboxd-Cacheable = "NO";
     set req.http.X-Letterboxd-Cacheable-Reason = "Purchase subpage";
-  } else if (req.http.X-Supermodel-File ~ "^/(films|lists|people)/?$") {
+  } else if (req.http.X-Supermodel-File ~ "^/(films|lists|people|showdown)/?$") {
     set req.http.X-Letterboxd-Cacheable = "YES";
     set req.http.X-Letterboxd-Cacheable-Reason = "Cacheable Main page";
+  } else if (req.http.X-Supermodel-File ~ "^/showdown/[^/]+/?") {
+    set req.http.X-Letterboxd-Cacheable = "NO";
+    set req.http.X-Letterboxd-Cacheable-Reason = "showdown page";
   } else if (req.http.X-Supermodel-File ~ "^/(patrons|tags|charts|create-account|imdb|tmdb)/?") {
     set req.http.X-Letterboxd-Cacheable = "NO";
     set req.http.X-Letterboxd-Cacheable-Reason = "Main page";
+  } else if (req.http.X-Supermodel-File ~ "^/(watchlist)/?") {
+    set req.http.X-Letterboxd-Cacheable = "NO";
+    set req.http.X-Letterboxd-Cacheable-Reason = "Watchlist redirect page";
   } else if (req.http.X-Supermodel-File ~ "^/(films|genre|lists|reviews|people|reviewers)/") {
     set req.http.X-Letterboxd-Cacheable = "NO";
     set req.http.X-Letterboxd-Cacheable-Reason = "Popular films/lists/reviews/people";
   } else if (req.http.X-Supermodel-File ~ "^/(year-in-review|2012|2013|2014|2015|2016|2017|2018|2019|2020)/?$") {
-    set req.http.X-Letterboxd-Cacheable = "NO";
+    set req.http.X-Letterboxd-Cacheable = "YES";
     set req.http.X-Letterboxd-Cacheable-Reason = "Year in review page";
   } else if (req.http.X-Supermodel-File ~ "^/list/new/") {
     set req.http.X-Letterboxd-Cacheable = "NO";
@@ -248,21 +265,18 @@ sub vcl_recv {
   } else if (req.http.X-Supermodel-File ~ "^/film/[^/]+/(image-125|image-150)/?$") {
     set req.http.X-Letterboxd-Cacheable = "YES";
     set req.http.X-Letterboxd-Cacheable-Reason = "A film poster container";
+  } else if (req.http.X-Supermodel-File ~ "^/js/c/embed-partner/?") {
+    set req.http.X-Letterboxd-Cacheable = "YES";
+    set req.http.X-Letterboxd-Cacheable-Reason = "The embed partner JS";
   } else if (req.http.X-Supermodel-File ~ "^/film/[^/]+/embed/") {
-    set req.http.X-Letterboxd-Cacheable = "NO";
+    set req.http.X-Letterboxd-Cacheable = "YES";
     set req.http.X-Letterboxd-Cacheable-Reason = "A film embed";
   } else if (req.http.X-Supermodel-File ~ "^/film/[^/]+/(mark-as-watched|mark-as-not-watched|rate|report|add-to-watchlist|remove-from-watchlist)/") {
     set req.http.X-Letterboxd-Cacheable = "NO";
     set req.http.X-Letterboxd-Cacheable-Reason = "A film action";
-  } else if (req.http.X-Supermodel-File ~ "^(/[a-zA-Z0-9_]{2,15}(/friends)?)?/film/[^/]+/(lists|fans|likes|watches|views|reviews|ratings|activity)/") {
+  } else if (req.http.X-Supermodel-File ~ "^(/[a-zA-Z0-9_]{2,15}(/friends)?)?/film(/[^/]+/(lists|fans|likes|watches|views|reviews|ratings|activity)?/?)?") {
     set req.http.X-Letterboxd-Cacheable = "NO";
     set req.http.X-Letterboxd-Cacheable-Reason = "Film subpage";
-  } else if (req.http.X-Supermodel-File ~ "^/esi/") {
-    set req.http.X-Letterboxd-Cacheable = "YES";
-    set req.http.X-Letterboxd-Cacheable-Reason = "ESI";
-  } else if (req.http.X-Supermodel-File ~ "^/csi/") {
-    set req.http.X-Letterboxd-Cacheable = "YES";
-    set req.http.X-Letterboxd-Cacheable-Reason = "CSI";
   } else if (req.http.X-Supermodel-File ~ "^/(search|welcome|pro|contact)/?$") {
     set req.http.X-Letterboxd-Cacheable = "YES";
     set req.http.X-Letterboxd-Cacheable-Reason = "search page, welcome page, pro page, contact page";
@@ -278,7 +292,7 @@ sub vcl_recv {
   } else if (req.http.X-Supermodel-File ~ "^/(about|legal|api-coming-soon|purpose)/") {
     set req.http.X-Letterboxd-Cacheable = "YES";
     set req.http.X-Letterboxd-Cacheable-Reason = "editorial page/section";
-  } else if (req.http.X-Supermodel-File ~ "^/(actor|director|studio|producer|writer|editor|cinematography|art-direction|visual-effects|composer|sound|costumes|make-up)/") {
+  } else if (req.http.X-Supermodel-File ~ "^/(actor|director|studio|producer|production-design|writer|editor|cinematography|art-direction|visual-effects|composer|sound|costumes|make-up)/") {
     set req.http.X-Letterboxd-Cacheable = "YES";
     set req.http.X-Letterboxd-Cacheable-Reason = "Basic film list";
   } else if (req.http.X-Supermodel-File ~ "^/[a-zA-Z0-9_]{2,15}/?$") {
@@ -290,7 +304,7 @@ sub vcl_recv {
   } else if (req.http.X-Supermodel-File ~ "^(/[a-zA-Z0-9_]{2,15}(/friends)?)?/tag/") {
     set req.http.X-Letterboxd-Cacheable = "NO";
     set req.http.X-Letterboxd-Cacheable-Reason = "A tag page";
-  } else if (req.http.X-Supermodel-File ~ "^/[a-zA-Z0-9_]{2,15}/(tags|likes|rss|following|followers|year)/?") {
+  } else if (req.http.X-Supermodel-File ~ "^/[a-zA-Z0-9_]{2,15}/(tags|likes|rss|following|followers|year|stats)/?") {
     set req.http.X-Letterboxd-Cacheable = "NO";
     set req.http.X-Letterboxd-Cacheable-Reason = "A person's subpage";
   } else if (req.http.X-Supermodel-File ~ "^/[a-zA-Z0-9_]{2,15}/(avatar)/") {
@@ -299,7 +313,7 @@ sub vcl_recv {
   } else if (req.http.X-Supermodel-File ~ "^/[a-zA-Z0-9_]{2,15}/list/[^/]+/(edit|clones|likes)/?") {
     set req.http.X-Letterboxd-Cacheable = "NO";
     set req.http.X-Letterboxd-Cacheable-Reason = "Film list subpage";
-  } else if (req.http.X-Supermodel-File ~ "^/[a-zA-Z0-9_]{2,15}/list/[^/]+/") {
+  } else if (req.http.X-Supermodel-File ~ "^/[a-zA-Z0-9_]{2,15}/list/[^/]+/?") {
     set req.http.X-Letterboxd-Cacheable = "YES";
     set req.http.X-Letterboxd-Cacheable-Reason = "Film list page";
   } else if (req.http.X-Supermodel-File ~ "^/[a-zA-Z0-9_]{2,15}/films/") {
@@ -368,7 +382,7 @@ sub vcl_recv {
        have the same as the parent request.
      */
     #set req.http.X-Supermodel-Generated-CSRF = randomstr(20, "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789");
-    set req.http.X-Supermodel-Generated-CSRF = regsub(digest.hash_sha1("" + client.ip + ":" + std.port(client.ip) + ":" + req.http.User-Agent), "^(.{20}).*$", "\1");
+    set req.http.X-Supermodel-Generated-CSRF = regsub(digest.hash_sha1("" + req.http.X-Forwarded-For + ":" + std.port(client.ip) + ":" + req.http.User-Agent), "^(.{20}).*$", "\1");
 
     /* Add it to the request cookie. Note that we may strip it below, but it's not there to not strip if appropriate.
        So we will _always_ have a CSRF cookie.
@@ -450,7 +464,7 @@ sub vcl_miss {
 
 sub vcl_deliver {
   /* 401 support - handle forbidden responses where we have stripped the user details */
-  if (resp.status == 401 && req.http.X-Supermodel-User-Stripped == "YES") {
+  if ((resp.status == 401 || resp.status == 403) && req.http.X-Supermodel-User-Stripped == "YES") {
     # Restart the request, not stripping the user details this time.
     std.rollback(req);
     set req.http.X-Supermodel-Allow-User = "YES";
@@ -476,6 +490,7 @@ sub vcl_deliver {
     set resp.http.X-Debug-Cookie = req.http.Cookie;
     set resp.http.X-Debug-Path = req.http.X-Supermodel-Path;
     set resp.http.X-Debug-Dont-Modify = req.http.X-Supermodel-Dont-Modify;
+    set resp.http.X-Supermodel-User-Stripped = req.http.X-Supermodel-User-Stripped;
 
     #LB
     set resp.http.X-Debug-Cookie-Set = req.http.X-Letterboxd-Cookie-Set;

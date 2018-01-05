@@ -1,0 +1,5 @@
+# Masquerade traffic from the Docker subnets
+$NET_IF     172.16.0.0/12
+$NET_IF     192.168.0.0/16
+$VLAN_IF    172.16.0.0/12
+$VLAN_IF    192.168.0.0/16

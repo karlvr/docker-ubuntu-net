@@ -9,6 +9,7 @@ fi
 
 TMPDIRNAME=amazon
 
+. $(dirname $0)/../libexec/tool-base-options.sh
 . $(dirname $0)/../libexec/tool-base.sh
 
 JAVA_OPTS="-Xmx4096M"

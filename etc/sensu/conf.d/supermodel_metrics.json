@@ -11,7 +11,7 @@
         },
         "supermodel_jdbc_metrics": {
             "type": "metric",
-            "command": "/opt/orac/sensu/plugins/supermodel/jdbc-metrics.sh -s stats.:::name:::.tomcat.jdbc http://:::letterboxd.hostname:::.letterboxd.com",
+            "command": "/opt/orac/sensu/plugins/supermodel/hikari-metrics.sh -s stats.:::name:::.tomcat.jdbc http://:::letterboxd.hostname:::.letterboxd.com",
             "standalone": true,
             "interval": 60,
             "occurrences": 1,

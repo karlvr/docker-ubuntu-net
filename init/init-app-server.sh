@@ -3,36 +3,37 @@
 # Init application server
 
 if [ ! -d /opt/tomcat ]; then
-	echo "Please run /opt/orac/init/init-tomcat.sh first"
-	exit 1
+    echo "Please run /opt/orac/init/init-tomcat.sh first"
+    exit 1
 fi
 
 case $(hostname) in
-	app1)
-		STATIC_URLS="http://elephant.s1.ltrbxd.com http://psycho.s1.ltrbxd.com http://predator.s1.ltrbxd.com http://memento.s1.ltrbxd.com"
-		SECURE_STATIC_URLS="https://s1.ltrbxd.com"
-		;;
-	app2)
-		STATIC_URLS="http://bullitt.s2.ltrbxd.com http://up.s2.ltrbxd.com http://brick.s2.ltrbxd.com http://moon.s2.ltrbxd.com"
-		SECURE_STATIC_URLS="https://s2.ltrbxd.com"
-		;;
-	app3)
-		STATIC_URLS="http://tron.s3.ltrbxd.com http://solaris.s3.ltrbxd.com http://robocop.s3.ltrbxd.com http://notorious.s3.ltrbxd.com"
-		SECURE_STATIC_URLS="https://s3.ltrbxd.com"
-		;;
-	app4)
-		STATIC_URLS="http://commando.s4.ltrbxd.com http://alien.s4.ltrbxd.com http://drive.s4.ltrbxd.com http://wargames.s4.ltrbxd.com"
-		SECURE_STATIC_URLS="https://s4.ltrbxd.com"
-		;;
-	*)
-		echo "Unsupported hostname: $(hostname)"
-		exit 1
-		;;
+    app1)
+        STATIC_URLS="http://elephant.s1.ltrbxd.com http://psycho.s1.ltrbxd.com http://predator.s1.ltrbxd.com http://memento.s1.ltrbxd.com"
+        SECURE_STATIC_URLS="https://s1.ltrbxd.com"
+        ;;
+    app2)
+        STATIC_URLS="http://bullitt.s2.ltrbxd.com http://up.s2.ltrbxd.com http://brick.s2.ltrbxd.com http://moon.s2.ltrbxd.com"
+        SECURE_STATIC_URLS="https://s2.ltrbxd.com"
+        ;;
+    app3)
+        STATIC_URLS="http://tron.s3.ltrbxd.com http://solaris.s3.ltrbxd.com http://robocop.s3.ltrbxd.com http://notorious.s3.ltrbxd.com"
+        SECURE_STATIC_URLS="https://s3.ltrbxd.com"
+        ;;
+    app4)
+        STATIC_URLS="http://commando.s4.ltrbxd.com http://alien.s4.ltrbxd.com http://drive.s4.ltrbxd.com http://wargames.s4.ltrbxd.com"
+        SECURE_STATIC_URLS="https://s4.ltrbxd.com"
+        ;;
+    *)
+        echo "Unsupported hostname: $(hostname)"
+        exit 1
+        ;;
 esac
 
 /bin/rm -f /etc/apache2/sites-available/letterboxd
-/bin/ln -s /opt/letterboxd/etc/apache2/sites-available/letterboxd.conf /etc/apache2/sites-available/letterboxd.conf
+/bin/ln -s /opt/letterboxd/etc/apache2/sites-available/*.conf /etc/apache2/sites-available/
 /usr/sbin/a2ensite letterboxd
+/usr/sbin/a2ensite boxdit
 /usr/sbin/a2dissite 000-default
 /usr/sbin/a2enmod ssl
 
@@ -59,7 +60,7 @@ sed -e "s/<Engine name=\"Catalina\" defaultHost=\"localhost\">/<Engine name=\"Ca
 # Also it reflects characteristics of our deployment environment so it belongs in server.xml really!
 sed -e '/<\/Engine>/ i\
 <Valve className="org.apache.catalina.valves.RemoteIpValve" internalProxies="10\\.\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}|127\\.0\\.0\\.1" remoteIpHeader="X-Forwarded-For" protocolHeader="X-Forwarded-Proto" />' \
-	--in-place /srv/tomcat/letterboxd/conf/server.xml
+    --in-place /srv/tomcat/letterboxd/conf/server.xml
 
 # Asset configuration
 /bin/cp /opt/letterboxd/etc/tomcat/conf/letterboxd.xml /srv/tomcat/letterboxd/conf/Catalina/localhost/ROOT.xml
@@ -75,7 +76,16 @@ cat <<EOF > /srv/tomcat/letterboxd/.bash_profile
 # NB: this file is automatically created by the init-app-server.sh script
 
 export JAVA_MAX_HEAP=10G
-export JAVA_OPTS="-Xms5G -XX:ReservedCodeCacheSize=300M"
+# ReservedCodeCacheSize is increased as we see these log entries:
+#   Java HotSpot(TM) 64-Bit Server VM warning: CodeCache is full. Compiler has been disabled.
+#   Java HotSpot(TM) 64-Bit Server VM warning: Try increasing the code cache size using -XX:ReservedCodeCacheSize=
+# We first increased it to 300M but we still saw issues, so now increased to 500M (1/1/2018)
+# Still saw full CodeCache, so increased to 600M (2/1/2018)
+export JAVA_OPTS="-Xms5G -XX:ReservedCodeCacheSize=600M"
+
+# We need to give jgroups a hint as to which interface to bind to, as we have multiple
+# LINK_LOCAL interfaces when we also have Docker running.
+export JAVA_OPTS="$JAVA_OPTS -Djgroups.tcp.address=$(hostname -i)"
 
 # Performance baseline for David Maplesden
 #export JAVA_OPTS="$JAVA_OPTS -Xloggc:gc.log -verbose:gc"
@@ -91,7 +101,7 @@ EOF
 
 # Apache
 if [ -d /etc/apache2/conf-available ]; then
-	cat > /etc/apache2/conf-available/letterboxd.conf <<EOF
+    cat > /etc/apache2/conf-available/letterboxd.conf <<EOF
 # Allow serving of Letterboxd bundled web content
 <Directory /opt/letterboxd/www/>
         Options Indexes FollowSymLinks
@@ -99,9 +109,24 @@ if [ -d /etc/apache2/conf-available ]; then
         Require all granted
 </Directory>
 EOF
-	/usr/sbin/a2enconf letterboxd
+    /usr/sbin/a2enconf letterboxd
 fi
 
 # Sensu
 mkdir -p /etc/sensu/conf.d
 ln -s /opt/letterboxd/etc/sensu/conf.d/check_websites.json /etc/sensu/conf.d/check_websites.json
+
+# haproxy
+apt-get install -y haproxy
+service haproxy stop
+
+rm /etc/haproxy/haproxy.cfg
+ln -s /opt/letterboxd/etc/haproxy/haproxy.cfg /etc/haproxy/
+
+# Ubuntu 14.04: need to enable service
+sed -e 's/ENABLED=0/ENABLED=1/' --in-place /etc/default/haproxy
+
+service haproxy start
+
+# Test haproxy with:
+# psql -h 127.0.0.1 -p 6432 letterboxd letterboxd

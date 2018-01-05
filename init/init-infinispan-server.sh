@@ -6,7 +6,7 @@ fi
 
 source /opt/orac/init/functions.sh
 
-INFINISPAN_VERSION=8.2.4.Final
+INFINISPAN_VERSION=9.1.1.Final
 
 gate infinispan "Installing Infinispan"
 if [ $? == 0 ]; then
@@ -22,12 +22,12 @@ if [ $? == 0 ]; then
 
 		# PostgreSQL
 		mkdir -p /opt/infinispan/modules/org/postgresql/main
-		wget --no-verbose http://jdbc.postgresql.org/download/postgresql-9.4-1201.jdbc41.jar -P /opt/infinispan/modules/org/postgresql/main
+		wget --no-verbose https://jdbc.postgresql.org/download/postgresql-42.1.4.jar -P /opt/infinispan/modules/org/postgresql/main
 		cat <<EOF > /opt/infinispan/modules/org/postgresql/main/module.xml
 <?xml version="1.0" encoding="UTF-8"?>  
 <module xmlns="urn:jboss:module:1.0" name="org.postgresql">  
 	<resources>  
-		<resource-root path="postgresql-9.4-1201.jdbc41.jar"/>  
+		<resource-root path="postgresql-42.1.4.jar"/>  
 	</resources>  
 	<dependencies>  
 		<module name="javax.api"/>  

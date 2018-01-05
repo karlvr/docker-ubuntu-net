@@ -41,6 +41,9 @@ ssh $SERVER '/opt/letterboxd/sbin/lb-archive-web'
 echo "$SERVER: Syncing web root..."
 rsync -av --stats --delete /srv/www/staging/web $SERVER:/srv/www/letterboxd
 
+echo "$SERVER: Syncing tools..."
+rsync -av --stats /srv/tools/staging/* $SERVER:/srv/tools/
+
 if [ $SYNC_SEARCH_INDEX == 1 ]; then
 	echo "$SERVER: Syncing search index from staging..."
 	rsync -av --delete /srv/tomcat/staging/temp/sm_search_letterboxd/ $SERVER:/srv/tomcat/letterboxd/temp/sm_search_letterboxd/

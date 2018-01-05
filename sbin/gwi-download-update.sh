@@ -11,7 +11,7 @@ ONLY_SPECIFIED_MODES=0
 DO_DOWNLOAD=0
 DO_UPDATE=0
 
-while getopts ":ud" opt; do
+while getopts ":uds" opt; do
   case $opt in
     u)
       ONLY_SPECIFIED_MODES=1
@@ -20,6 +20,9 @@ while getopts ":ud" opt; do
     d)
       ONLY_SPECIFIED_MODES=1
       DO_DOWNLOAD=1
+      ;;
+    s)
+      STAGING=1
       ;;
     \?)
       echo "Invalid option: -$OPTARG" >&2

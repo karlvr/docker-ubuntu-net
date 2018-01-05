@@ -36,6 +36,8 @@ ACCEPT          net:123.100.90.137      $FW     tcp     10001:10010 # YourKit Pr
 ## Database vlan access
 PostgreSQL(ACCEPT) $FW          vlan
 PostgreSQL(ACCEPT) vlan         $FW
+ACCEPT		$FW 	vlan	tcp 	6432 # pgbouncer
+ACCEPT		vlan	$FW 	tcp 	6432 # pgbouncer
 
 ## Tomcat vlan access
 ACCEPT     vlan     $FW     tcp     20001
@@ -76,6 +78,20 @@ SSH(ACCEPT)     $FW             net
 Web(ACCEPT)     $FW             net
 Mail(ACCEPT)    $FW             net
 NTP(ACCEPT)     $FW             net
+IMAP(ACCEPT)	$FW 			net:120.138.27.32	# Bounce tracking
 
 ACCEPT          $FW             net     tcp     hkp    # OpenPGP HTTP Keyserver needed for add-apt-repository
 ACCEPT          $FW             net     udp     hkp    # OpenPGP HTTP Keyserver needed for add-apt-repository
+
+# Docker
+ACCEPT          dckr,$FW    dckr,$FW    tcp    2376:2377,7946
+ACCEPT          vlan,$FW    vlan,$FW    tcp    2376:2377,7946
+ACCEPT          dckr,$FW    $FW,dckr    udp    7946,4789
+ACCEPT          vlan,$FW    $FW,vlan    udp    7946,4789
+Ping(ACCEPT)	dckr 	    all
+Ping(ACCEPT)	$FW,vlan    dckr
+
+ACCEPT			$FW,vlan	dckr 		tcp 	11222,11224 # Infinispan
+PostgreSQL(ACCEPT)	dckr 	$FW,vlan
+DNS(ACCEPT)		dckr 		all
+Web(ACCEPT)     dckr        net

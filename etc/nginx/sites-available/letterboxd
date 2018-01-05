@@ -1,0 +1,28 @@
+# This server just exists to enable us to use certbot / letsencrypt to request SSL certificates
+
+server {
+        listen  80 default_server;
+        listen  [::]:80 default_server;
+        server_name     letterboxd.com *.letterboxd.com;
+
+        access_log off;
+
+        include /opt/letterboxd/etc/nginx/gzip.conf;
+
+        location / {
+                proxy_pass http://varnish;
+
+                # http://nginx.org/en/docs/http/ngx_http_upstream_module.html#keepalive
+                # HTTP/1.1 is required for the API as otherwise CXF gets nasty and returns empty responses
+                proxy_http_version 1.1;
+                proxy_set_header Connection "";
+
+                proxy_set_header Host $host;
+                proxy_set_header X-Real-IP $remote_addr;
+                proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+                proxy_set_header X-Forwarded-Proto http;
+                proxy_set_header X-Forwarded-Port 80;
+
+                proxy_redirect off;
+        }       
+}

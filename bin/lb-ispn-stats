@@ -2,4 +2,4 @@
 # 
 # Infinispan server metadata cache stats
 
-su - -c "bin/ispn-cli.sh --connect \"container clustered82,cache 'letterboxd.metadata',stats\"" infinispan
+su - -c "bin/ispn-cli.sh --connect \"container clustered,cache 'letterboxd.metadata',stats\"" infinispan

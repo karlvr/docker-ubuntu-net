@@ -1,0 +1,13 @@
+# This server just exists to enable us to use certbot / letsencrypt to request SSL certificates
+
+server {
+        listen  80;
+        listen  [::]:80;
+        server_name     boxd.it;
+
+        access_log off;
+
+        include /opt/letterboxd/etc/nginx/gzip.conf;
+
+        rewrite ^/(.*)$ https://boxd.it/$1 permanent;      
+}

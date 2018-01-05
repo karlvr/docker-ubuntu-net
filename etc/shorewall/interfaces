@@ -14,3 +14,5 @@
 #ZONE	INTERFACE	BROADCAST	OPTIONS
 net     $NET_IF     detect      dhcp,logmartians
 int 	$VLAN_IF	detect		logmartians
+dckr    docker0
+dckr    docker_gwbridge

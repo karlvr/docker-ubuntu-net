@@ -1,0 +1,15 @@
+#!/bin/bash
+#
+# When the container runs as a service in a swarm with an overlay network it gets
+# multiple IP addresses, so we need to choose the right one to bind to.
+
+for hostname in $(hostname -i) ; do
+	if [[ $hostname =~ ^10\.0\.0 ]]; then
+		echo $hostname
+		exit 0
+	fi
+done
+
+echo "Couldn't find a preferred hostname: $(hostname -i)" >&2
+hostname -i
+exit 0
