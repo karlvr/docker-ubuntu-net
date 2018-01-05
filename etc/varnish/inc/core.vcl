@@ -464,7 +464,7 @@ sub vcl_miss {
 
 sub vcl_deliver {
   /* 401 support - handle forbidden responses where we have stripped the user details */
-  if (resp.status == 401 && req.http.X-Supermodel-User-Stripped == "YES") {
+  if ((resp.status == 401 || resp.status == 403) && req.http.X-Supermodel-User-Stripped == "YES") {
     # Restart the request, not stripping the user details this time.
     std.rollback(req);
     set req.http.X-Supermodel-Allow-User = "YES";
