@@ -490,6 +490,7 @@ sub vcl_deliver {
     set resp.http.X-Debug-Cookie = req.http.Cookie;
     set resp.http.X-Debug-Path = req.http.X-Supermodel-Path;
     set resp.http.X-Debug-Dont-Modify = req.http.X-Supermodel-Dont-Modify;
+    set resp.http.X-Supermodel-User-Stripped = req.http.X-Supermodel-User-Stripped;
 
     #LB
     set resp.http.X-Debug-Cookie-Set = req.http.X-Letterboxd-Cookie-Set;
