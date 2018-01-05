@@ -250,7 +250,7 @@ sub vcl_recv {
     set req.http.X-Letterboxd-Cacheable = "NO";
     set req.http.X-Letterboxd-Cacheable-Reason = "Popular films/lists/reviews/people";
   } else if (req.http.X-Supermodel-File ~ "^/(year-in-review|2012|2013|2014|2015|2016|2017|2018|2019|2020)/?$") {
-    set req.http.X-Letterboxd-Cacheable = "NO";
+    set req.http.X-Letterboxd-Cacheable = "YES";
     set req.http.X-Letterboxd-Cacheable-Reason = "Year in review page";
   } else if (req.http.X-Supermodel-File ~ "^/list/new/") {
     set req.http.X-Letterboxd-Cacheable = "NO";
