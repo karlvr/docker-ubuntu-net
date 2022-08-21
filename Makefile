@@ -1,7 +1,7 @@
 IMAGE=karlvr/$(shell basename $(shell pwd))
 
 .PHONY: build
-build: pull
+build:
 	docker build . -t $(IMAGE):latest
 
 .PHONY: pull
@@ -11,3 +11,7 @@ pull:
 .PHONY: push
 push:
 	docker push $(IMAGE):latest
+
+.PHONY: run
+run: build
+	docker run -it --entrypoint bash $(IMAGE)
