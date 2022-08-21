@@ -9,7 +9,7 @@ pull:
 	docker pull ubuntu:20.04
 
 .PHONY: push
-push:
+push: build
 	docker push $(IMAGE):latest
 
 .PHONY: run
