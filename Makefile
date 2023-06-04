@@ -1,4 +1,4 @@
-IMAGE=karlvr/$(shell basename $(shell pwd))
+IMAGE=karlvr/ubuntu-net
 
 .PHONY: all
 all: pull build
