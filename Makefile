@@ -1,5 +1,8 @@
 IMAGE=karlvr/$(shell basename $(shell pwd))
 
+.PHONY: all
+all: pull build
+
 .PHONY: build
 build:
 	docker build . -t $(IMAGE):latest
