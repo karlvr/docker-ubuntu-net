@@ -8,10 +8,9 @@ RUN apt-get update && apt-get install -y net-tools iputils-ping traceroute iprou
 #
 # We remove the effective bit so it only fails if it actually needs the capability
 # See https://projectatomic.io/blog/2015/04/problems-with-ping-in-containers-on-atomic-hosts/
-RUN setcap cap_net_raw+p /usr/bin/ping
-RUN setcap cap_net_raw+p /usr/bin/mtr-packet
-
-RUN usermod --append --groups sudo ubuntu && \
+RUN setcap cap_net_raw+p /usr/bin/ping && \
+	setcap cap_net_raw+p /usr/bin/mtr-packet && \
+	usermod --append --groups sudo ubuntu && \
 	echo "ubuntu ALL=(ALL) NOPASSWD:ALL" > /etc/sudoers.d/ubuntu
 
 ENTRYPOINT ["/usr/bin/tini", "--"]
