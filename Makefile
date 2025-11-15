@@ -1,15 +1,11 @@
 IMAGE=karlvr/ubuntu-net
 
 .PHONY: all
-all: pull build
+all: build
 
 .PHONY: build
 build:
-	docker build . -t $(IMAGE):latest
-
-.PHONY: pull
-pull:
-	docker pull ubuntu:20.04
+	docker buildx build --platform=linux/amd64 --pull . -t $(IMAGE):latest
 
 .PHONY: push
 push: build
@@ -17,4 +13,4 @@ push: build
 
 .PHONY: run
 run: build
-	docker run -it --entrypoint bash $(IMAGE)
+	docker run -it --rm --entrypoint /bin/bash $(IMAGE)
