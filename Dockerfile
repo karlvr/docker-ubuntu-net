@@ -13,6 +13,9 @@ RUN setcap cap_net_raw+p /usr/bin/mtr-packet
 
 RUN usermod --append --groups sudo ubuntu && \
 	echo "ubuntu ALL=(ALL) NOPASSWD:ALL" > /etc/sudoers.d/ubuntu
-CMD ["sleep", "infinity"]
+
+ENTRYPOINT ["/bin/sh", "-c"]
+CMD ["sleep infinity"]
+
 USER 1000
 WORKDIR /home/ubuntu
