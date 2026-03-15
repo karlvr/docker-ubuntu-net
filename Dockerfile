@@ -27,6 +27,15 @@ RUN setcap cap_net_raw+p /usr/bin/ping && \
 	usermod --append --groups sudo ubuntu && \
 	echo "ubuntu ALL=(ALL) NOPASSWD:ALL" > /etc/sudoers.d/ubuntu
 
+# PostgreSQL client
+RUN apt install -y curl ca-certificates && \
+	echo "deb [signed-by=/usr/share/postgresql-common/pgdg/apt.postgresql.org.asc] https://apt.postgresql.org/pub/repos/apt noble-pgdg main" > /etc/apt/sources.list.d/pgdg.list && \
+	mkdir -p /usr/share/postgresql-common/pgdg/ && \
+	curl -o /usr/share/postgresql-common/pgdg/apt.postgresql.org.asc --fail https://www.postgresql.org/media/keys/ACCC4CF8.asc && \
+	apt-get update && \
+	apt-get install -y \
+		postgresql-client-18
+
 ENTRYPOINT ["/usr/bin/tini", "--"]
 CMD ["sleep", "infinity"]
 
