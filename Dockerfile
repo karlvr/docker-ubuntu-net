@@ -1,7 +1,21 @@
 FROM ubuntu:24.04
 
-RUN apt-get update && apt-get install -y net-tools iputils-ping traceroute iproute2 iptables dnsutils bind9-host netcat-openbsd less sudo mtr screen curl tini
-
+RUN apt-get update && \
+	apt-get install -y \
+		net-tools \
+		iputils-ping \
+		traceroute \
+		iproute2 \
+		iptables \
+		dnsutils \
+		bind9-host \
+		netcat-openbsd \
+		less \
+		sudo \
+		mtr \
+		screen \
+		curl \
+		tini
 # Fix ping so we can use it without cap_net_raw, such as in a locked-down container but with
 #   sysctl -w net.ipv4.ping_group_range=0 65535
 # See https://www.antitree.com/2019/01/containers-using-ping-without-cap_net_raw/
