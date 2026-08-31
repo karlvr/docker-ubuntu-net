@@ -5,7 +5,7 @@ all: build
 
 .PHONY: build
 build:
-	docker buildx build --platform=linux/amd64 --pull . -t $(IMAGE):latest
+	docker buildx build --platform=linux/amd64,linux/arm64 --pull . -t $(IMAGE):latest
 
 .PHONY: push
 push: build
